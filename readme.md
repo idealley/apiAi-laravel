@@ -1,27 +1,17 @@
-# Laravel PHP Framework
+# api.ai and laravel
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/d/total.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+This is a little experiment with api.ai and laravel. The assistant respond with a parameter that is used to fetch some news accordingly (rss). The latest news in the rss is being read aloud by the assistant.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
+It is not production ready, again it is just a quick test.
 
-Laravel is accessible, yet powerful, providing tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
+# routes
 
-## Official Documentation
+there is one GET route that returns JSON with parsed date from RSS feeds according to the param sent by the "News Agent".
 
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
+# controller
 
-## Contributing
+there is one controller that manages the selection of the rss feed accordin the received param and that pareses the rss feeds and formats it before sending it back to the Javascript that resquested it.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+# JS
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT).
+the file `public/js/main.js` handels the connection to api.ai and then requests the data by doing an ajax call to the laravel route. It then handels the response to send a `tts` request to api.ai to have it reading the news and it displays all the news found in the RSS feed.  
