@@ -22,11 +22,19 @@ class RssController extends Controller
         $results = json_decode($request->getContent(), true);
 
         $answer = $this->answer($results);
+        if(isset($answer['news']['title'])){
+            $speech = $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+            $text = $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+        } else {
+            $speech = $answer['speech'];
+            $text = $answer['speech'];
+        }
+        
 
         //this is a valid response for API.AI 
         return Response::json([
-                    'speech'   => $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'],
-                    'displayText' => $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'],
+                    'speech'   => $speech,
+                    'displayText' => $text,
                     'data' => '',
                     'contextOut' => [],
                     'source' => "Blick.ch"
@@ -63,8 +71,8 @@ class RssController extends Controller
         if($rssFeed == "fashion" ) {$url = "http://www.blick.ch/life/mode/rss.xml";}
         if($rssFeed == "digital" ) {$url = "http://www.blick.ch/life/digital/rss.xml";}
 
-    	$feed = new SimplePie();
-    	$feed->set_feed_url($url);
+        $feed = new SimplePie();
+        $feed->set_feed_url($url);
         $feed->enable_cache(false);
         $success = $feed->init();
            
@@ -84,14 +92,14 @@ class RssController extends Controller
             $feed->handle_content_type(); 
             $items = $feed->get_items();
             $item = head($items);
-        		$parsed['title'] = $item->get_title();
-        		$parsed['body'] = $this->truncate(strip_tags($item->get_content()));
+                $parsed['title'] = $item->get_title();
+                $parsed['body'] = $this->truncate(strip_tags($item->get_content()));
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $parsed['image'] = str_replace('"', '', $image[2]);
-        		$parsed['date'] = $item->get_date('j M Y, g:i a');
-        		if ($item->get_permalink()){
-        			$parsed['permalink'] = $item->get_permalink();
-        		}
+                $parsed['date'] = $item->get_date('j M Y, g:i a');
+                if ($item->get_permalink()){
+                    $parsed['permalink'] = $item->get_permalink();
+                }
             $item = array_pull($items, 1); 
                 $next['title'] = $item->get_title();
                 $next['body'] = $this->truncate(strip_tags($item->get_content()));
@@ -218,6 +226,7 @@ class RssController extends Controller
         $speech =  isset($results['result']['speech']) ? $results['result']['speech'] : '';
         $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
         $contexts =  isset($results['result']['metadata']['contexts']) ? $results['result']['metadata']['contexts'] : false; // array
+        $webhookUsed =  isset($results['result']['metadata']['webhookUsed']) ? $results['result']['metadata']['webhookUsed'] : false; // array
         $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
 
         $answer['adjective'] = $adjective;
@@ -234,12 +243,14 @@ class RssController extends Controller
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
             $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
-
-        if($action == "show.news"){
+        //with Webhook action is false...
+        if($action == "show.news" || $webhookUsed){
                 if($subject){
                     $response = $this->feed($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
+                    $answer['news']['title'] = "This is a test title";
+                    $answer['news']['body'] = "This is a test body";
                 }
 
                 if($intent == "More info") {
@@ -271,6 +282,6 @@ class RssController extends Controller
         } 
 
         return $answer;
-
     }
+
 }
