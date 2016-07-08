@@ -18,21 +18,18 @@ class RssController extends Controller
     dd($result);
     }
     public function webhook(Request $request){
-        $results = json_decode($request->instance()->getContent(), true);
-   
-        $subject = $results->result->parameters->subject;
-        $speech = "Here are the latest news about ".$subject;
-        $allNews = $this->feed($subject);
-        $news = json_decode($allNews->getContent(), true);
-        $text = $news['item']['title'];
+        //Getting the POST request from API.AI and decoding it
+        $results = json_decode($request->getContent(), true);
 
+        $answer = $this->answer($results);
+
+        //this is a valid response for API.AI 
         return Response::json([
-                'speech'   => $speech .' - '.$text,
-                'displayText' => $speech.' - '.$text,
-                'data' => $subject,
-                'contextOut' => [],
-                'source' => "Blick.ch",
-                'status' => [ "code" => 200, "errorType" => "All good"]
+                    'speech'   => $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'],
+                    'displayText' => $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'],
+                    'data' => '',
+                    'contextOut' => [],
+                    'source' => "Blick.ch"
             ], 200);
 
     }
@@ -137,105 +134,20 @@ class RssController extends Controller
 
     public function apiAi(Request $request){
 
-        $client = new Client();
+        $results = $this->sendRequest($request);
 
-        $apiai_key = env('API_AI_ACCESS_TOKEN');
-        $apiai_subscription_key = env('API_AI_DEV_TOKEN');
+        $answer = $this->answer($results);
 
-        $query = $request->input('query');
-
-        //$query = 'Is there any music about it?';
-        //$query = 'Next song';
-        //$query = 'Any Pop song?';
-
-        $response = $client->post('https://api.api.ai/v1/query', array(
-            'headers' => array(
-                'Authorization' => "Bearer {$apiai_key}",
-                'ocp-apim-subscription-key' => $apiai_subscription_key,
-                'Content-Type' => 'application/json; charset=utf-8'
-            ),
-            'json' => array(
-                "query" => $query,
-                "lang" => "en"
-            )
-            ));
-
-        $results = $response->json();
-
-        //to see the API.AI response during dev in JSON format
-        //return $results; 
-
-        //setting defaults
-        $action = isset($results['result']['action']) ? $results['result']['action'] : false;
-        $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;
-        $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
-        $speech =  $results['result']['speech'];
-        $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
-        $contexts =  $results['result']['metadata']['contexts']; // array
-        $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
-        
-        //start formating the response to the app
-        $answer['speech'] = $speech;
-
-        If(!$action && $speech == '' && !$subject){
-            $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
-        } 
-
-       /* if($results['result']['action'] == "request.news" && 
-            (isset($results['result']['parameters']['subject']) 
-            && isset($results['result']['parameters']['adjective'])
-            ))
-        {
-            $answer['speech'] = 'Here are the latest '.
-                $results['result']['parameters']['adjective'].' '.
-                $results['result']['parameters']['subject'];
-                
-            $response = $this->feed('zurich'); //we could use Google Map api here...
-            $news = json_decode($response->getContent(), true);
-            $answer['adjective'] = $results['result']['parameters']['adjective'];
-        } */
-
-        if($action == "show.news"){
-                $response = $this->feed($subject);
-                $allNews = json_decode($response->getContent(), true);
-                $news = $allNews['item'];
-                if($intent == "More info") {
-                    $news = $allNews['next'];
-                }
-        }
-
-        if($action == "news.search"){
-            //
-        }
-
-        if($action == "play.music"){
-            $songs = $this->spotify($subject);
-            if($songs != null){ 
-                $music = $songs['playing'];
-                if($intent == "next song") {
-                    $music = $songs['next'];
-                }
-            }    
-        }
-
-        if($action == "wisdom.unknown"){
-                $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
-                $songs = $this->spotify('opera');
-                $music = $songs['playing'];
-                if($intent == "next song") {
-                    $music = $songs['next'];
-                }
-        } 
- 
+        //Here we format the response for the JS on the frontend
         return Response::json([
-                'news'  => isset($news) ? $news : null,
-                'music' => isset($music) ? $music : null,
+                'news'  => isset($answer['news']) ? $answer['news'] : null,
+                'music' => isset($answer['music']) ? $answer['music'] : null,
                 'speech'   => $answer['speech'],
-                'action' => $action,
-                'subject' => $subject,
-                'contexts' => $contexts,
-                'intent' => $intent,
-                'adjective' => $adjective
+                'action' => $answer['action'],
+                'subject' => $answer['subject'],
+                'contexts' => $answer['contexts'],
+                'intent' => $answer['intent'],
+                'adjective' => $answer['adjective']
             ], 200);
     }
 
@@ -257,6 +169,104 @@ class RssController extends Controller
         $song['next'] = $tracks->tracks->items[1]->preview_url;
         
         return $song;
+
+    }
+
+    /**
+    * Send the Request to API.AI
+    * @param object $request
+    * @return array
+    */
+    public function sendRequest($request){
+
+        $query = $request->input('query');
+
+        $client = new Client();
+
+        $apiai_key = env('API_AI_ACCESS_TOKEN');
+        $apiai_subscription_key = env('API_AI_DEV_TOKEN');
+
+        $response = $client->post('https://api.api.ai/v1/query', array(
+            'headers' => array(
+                'Authorization' => "Bearer {$apiai_key}",
+                'ocp-apim-subscription-key' => $apiai_subscription_key,
+                'Content-Type' => 'application/json; charset=utf-8'
+            ),
+            'json' => array(
+                "query" => $query,
+                "lang" => "en"
+            )
+            ));
+
+        return $response->json();
+
+    }
+
+    /**
+    * Parse the results received from API.AI and parse it with some logic to
+    * get some news or music to display
+    * @param array $results
+    * @return array
+    */
+    public function answer($results){
+
+        //setting defaults
+        $answer = array();
+        $action = isset($results['result']['action']) ? $results['result']['action'] : false;
+        $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;
+        $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
+        $speech =  $results['result']['speech'];
+        $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
+        $contexts =  $results['result']['metadata']['contexts']; // array
+        $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
+
+        $answer['adjective'] = $adjective;
+        $answer['subject'] = $subject;
+        $answer['contexts'] = $contexts;
+        $answer['intent'] = $intent;
+        $answer['action'] = $action;
+        //$answer['resolvedQuery'] = $resolvedQuery;
+        
+        //start formating the response to the app
+        $answer['speech'] = $speech;
+
+        If(!$action && $speech == '' && !$subject){
+            $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
+        } 
+
+        if($action == "show.news"){
+                $response = $this->feed($subject);
+                $allNews = json_decode($response->getContent(), true);
+                $answer['news'] = $allNews['item'];
+                if($intent == "More info") {
+                    $answer['news'] = $allNews['next'];
+                }
+        }
+        //the domain using this action is not free
+        if($action == "news.search"){
+            //
+        }
+
+        if($action == "play.music"){
+            $songs = $this->spotify($subject);
+            if($songs != null){ 
+                $answer['music'] = $songs['playing'];
+                if($intent == "next song") {
+                    $answer['music'] = $songs['next'];
+                }
+            }    
+        }
+        //the domain using this action is not free
+        if($action == "wisdom.unknown"){
+                $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
+                $songs = $this->spotify('opera');
+                $answer['music'] = $songs['playing'];
+                if($intent == "next song") {
+                    $answer['music'] = $songs['next'];
+                }
+        } 
+
+        return $answer;
 
     }
 }
