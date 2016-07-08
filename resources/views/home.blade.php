@@ -65,10 +65,21 @@
 									<section class="content">
 										<div class="grid">
 											<div class="grid__item">
-										    <div>
-										        <input type="text" id="query" name="query"> 
-										        <button id="rec">Speak</button>
-										    </div>
+										    	<div>
+										        	<button class="btn btn-brand id="rec">Speak</button>
+										    	</div>
+											</div>
+											<div class="grid__item" style="margin: 1em 0;">
+										    	<div>
+											        <div class="form-group form-group-label form-group-brand">
+														<label class="floating-label" for="ui_floating_label_example_brand">Or, ask with your keyboard</label>
+														<input class="form-control" id="query ui_floating_label_example_brand" type="text">
+														<div class="form-help">
+															<p>Use the Enter Key to validate your input</p>
+														</div>
+													</div>
+										    	</div>
+											</div>		
 										</div>		
 									</section>		
 
@@ -108,8 +119,9 @@
 		</div>
 	</div>-->
 
-		<script src="js/jquery.js"></script>
+		<script src="/js/jquery.js"></script>
 		<script src="/js/project.min.js"></script>
+		<script src="/js/base.min.js"></script>
 		<script src="/js/speech-recognition.js"></script>
 		<script src="/js/main.js"></script>
 	</body>

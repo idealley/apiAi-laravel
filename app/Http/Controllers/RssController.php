@@ -23,8 +23,8 @@ class RssController extends Controller
 
         $answer = $this->answer($results);
         if(isset($answer['news']['title'])){
-            $speech = $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
-            $text = $answer['speech'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+            $speech = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+            $text = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
         } else {
             $speech = $answer['speech'];
             $text = $answer['speech'];
@@ -42,103 +42,7 @@ class RssController extends Controller
 
     }
     
-    public function feed($rssFeed) {
 
-        $url = '';
-
-        if($rssFeed == "news" ) { $url = "http://www.blick.ch/news/rss.xml";}
-        if($rssFeed == "swiss" || $rssFeed == "Switzerland" ) {$url = "http://www.blick.ch/news/schweiz/rss.xml";}
-        if($rssFeed == "basel" ) {$url = "http://www.blick.ch/news/schweiz/basel/rss.xml";}
-        if($rssFeed == "bern" ) {$url = "http://www.blick.ch/news/schweiz/bern/rss.xml";}
-        if($rssFeed == "graubuenden" ) {$url = "http://www.blick.ch/news/schweiz/graubuenden/rss.xml";}
-        if($rssFeed == "mittelland" ) {$url = "http://www.blick.ch/news/schweiz/mittelland/rss.xml";}
-        if($rssFeed == "ostschweiz" ) {$url = "http://www.blick.ch/news/schweiz/ostschweiz/rss.xml";}
-        if($rssFeed == "tessin" ) {$url = "http://www.blick.ch/news/schweiz/tessin/rss.xml";}
-        if($rssFeed == "westschweiz" ) {$url = "http://www.blick.ch/news/schweiz/westschweiz/rss.xml";}
-        if($rssFeed == "zentralschweiz" ) {$url = "http://www.blick.ch/news/schweiz/zentralschweiz/rss.xml";}
-        if($rssFeed == "zurich" || $rssFeed == "Zurich" ) {$url = "http://www.blick.ch/news/schweiz/zuerich/rss.xml";}
-        if($rssFeed == "foreign" ) {$url = "http://www.blick.ch/news/ausland/rss.xml";}
-        if($rssFeed == "economy" ) {$url = "http://www.blick.ch/news/wirtschaft/rss.xml";}
-        if($rssFeed == "sport" ) {$url = "http://www.blick.ch/sport/rss.xml";}
-        if($rssFeed == "football" ) {$url = "http://www.blick.ch/sport/fussball/rss.xml";}
-        if($rssFeed == "hockey" ) {$url = "http://www.blick.ch/sport/eishockey/rss.xml";}
-        if($rssFeed == "ski" ) {$url = "http://www.blick.ch/sport/ski/rss.xml";}
-        if($rssFeed == "tennis" ) {$url = "http://www.blick.ch/sport/tennis/rss.xml";}
-        if($rssFeed == "formula 1" ) {$url = "http://www.blick.ch/sport/formel1/rss.xml";}
-        if($rssFeed == "bike" ) {$url = "http://www.blick.ch/sport/rad/rss.xml";}
-        if($rssFeed == "people" ) {$url = "http://www.blick.ch/people-tv/rss.xml";}
-        if($rssFeed == "life" ) {$url = "http://www.blick.ch/life/rss";}
-        if($rssFeed == "fashion" ) {$url = "http://www.blick.ch/life/mode/rss.xml";}
-        if($rssFeed == "digital" ) {$url = "http://www.blick.ch/life/digital/rss.xml";}
-
-        $feed = new SimplePie();
-        $feed->set_feed_url($url);
-        $feed->enable_cache(false);
-        $success = $feed->init();
-           
-        if(!$success){
-            $item['title'] = "No news found";
-            $items['body'] = '';
-            $items['date'] = '';
-            $items['permalink'] = null;
-           return Response::json([ 
-                'item'   => $item,
-                'message' => 'No news found :('
-            ], 200);  
-        }       
-
-
-        if($success){  
-            $feed->handle_content_type(); 
-            $items = $feed->get_items();
-            $item = head($items);
-                $parsed['title'] = $item->get_title();
-                $parsed['body'] = $this->truncate(strip_tags($item->get_content()));
-                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
-                $parsed['image'] = str_replace('"', '', $image[2]);
-                $parsed['date'] = $item->get_date('j M Y, g:i a');
-                if ($item->get_permalink()){
-                    $parsed['permalink'] = $item->get_permalink();
-                }
-            $item = array_pull($items, 1); 
-                $next['title'] = $item->get_title();
-                $next['body'] = $this->truncate(strip_tags($item->get_content()));
-                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
-                $next['image'] = str_replace('"', '', $image[2]);
-                $next['date'] = $item->get_date('j M Y, g:i a');
-                if ($item->get_permalink()){
-                    $next['permalink'] = $item->get_permalink();
-                }
-            $item = array_pull($items, 2); 
-                $next2['title'] = $item->get_title();
-                $next2['body'] = $this->truncate(strip_tags($item->get_content()));
-                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
-                $next2['image'] = str_replace('"', '', $image[2]);
-                $next2['date'] = $item->get_date('j M Y, g:i a');
-                if ($item->get_permalink()){
-                    $next2['permalink'] = $item->get_permalink();
-                }  
-        }
-        return Response::json([
-                'item'  => $parsed,
-                'next' => $next,
-                'last' => $next2,
-                'message'   => "Here is the latest news"
-            ], 200);
-    }
-
-        public function truncate($string, $length=500, $append="&hellip;"){
-        $string = trim($string);
-
-        if(strlen($string) > $length) {
-            $string = wordwrap($string, $length);
-            $string = explode("\n", $string, 2);
-            $string = $string[0]. $append;
-        }
-
-        return $string;
-
-    }
 
     public function apiAi(Request $request){
 
@@ -224,6 +128,7 @@ class RssController extends Controller
         $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
         $speech =  isset($results['result']['speech']) ? $results['result']['speech'] : '';
+        $fulfillment =  isset($results['result']['fulfillment']['speech']) ? $results['result']['fulfillment']['speech'] : '';
         $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
         $contexts =  isset($results['result']['metadata']['contexts']) ? $results['result']['metadata']['contexts'] : false; // array
         $webhookUsed =  isset($results['result']['metadata']['webhookUsed']) ? $results['result']['metadata']['webhookUsed'] : false; // array
@@ -238,6 +143,8 @@ class RssController extends Controller
         
         //start formating the response to the app
         $answer['speech'] = $speech;
+        // speech response for webhooks call
+        $answer['fulfillment'] = $fulfillment;
 
         If(!$action && $speech == '' && !$subject){
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
@@ -249,8 +156,6 @@ class RssController extends Controller
                     $response = $this->feed($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
-                    $answer['news']['title'] = "This is a test title";
-                    $answer['news']['body'] = "This is a test body";
                 }
 
                 if($intent == "More info") {
@@ -282,6 +187,104 @@ class RssController extends Controller
         } 
 
         return $answer;
+    }
+
+    public function truncate($string, $length=500, $append="&hellip;"){
+        $string = trim($string);
+
+        if(strlen($string) > $length) {
+            $string = wordwrap($string, $length);
+            $string = explode("\n", $string, 2);
+            $string = $string[0]. $append;
+        }
+
+        return $string;
+
+    }
+
+    public function feed($rssFeed) {
+
+        $url = '';
+
+        if($rssFeed == "news" ) { $url = "http://www.blick.ch/news/rss.xml";}
+        if($rssFeed == "swiss" || $rssFeed == "Switzerland" || $rssFeed == "switzerland" ) {$url = "http://www.blick.ch/news/schweiz/rss.xml";}
+        if($rssFeed == "basel" || $rssFeed == "Basel" ) {$url = "http://www.blick.ch/news/schweiz/basel/rss.xml";}
+        if($rssFeed == "bern" || $rssFeed == "Bern" ) {$url = "http://www.blick.ch/news/schweiz/bern/rss.xml";}
+        if($rssFeed == "graubuenden" ) {$url = "http://www.blick.ch/news/schweiz/graubuenden/rss.xml";}
+        if($rssFeed == "mittelland" ) {$url = "http://www.blick.ch/news/schweiz/mittelland/rss.xml";}
+        if($rssFeed == "ostschweiz" ) {$url = "http://www.blick.ch/news/schweiz/ostschweiz/rss.xml";}
+        if($rssFeed == "tessin" || $rssFeed == "Ticino") {$url = "http://www.blick.ch/news/schweiz/tessin/rss.xml";}
+        if($rssFeed == "westschweiz" ) {$url = "http://www.blick.ch/news/schweiz/westschweiz/rss.xml";}
+        if($rssFeed == "zentralschweiz" ) {$url = "http://www.blick.ch/news/schweiz/zentralschweiz/rss.xml";}
+        if($rssFeed == "zurich" || $rssFeed == "Zurich" ) {$url = "http://www.blick.ch/news/schweiz/zuerich/rss.xml";}
+        if($rssFeed == "foreign" ) {$url = "http://www.blick.ch/news/ausland/rss.xml";}
+        if($rssFeed == "economy" ) {$url = "http://www.blick.ch/news/wirtschaft/rss.xml";}
+        if($rssFeed == "sport" ) {$url = "http://www.blick.ch/sport/rss.xml";}
+        if($rssFeed == "football" ) {$url = "http://www.blick.ch/sport/fussball/rss.xml";}
+        if($rssFeed == "hockey" ) {$url = "http://www.blick.ch/sport/eishockey/rss.xml";}
+        if($rssFeed == "ski" ) {$url = "http://www.blick.ch/sport/ski/rss.xml";}
+        if($rssFeed == "tennis" ) {$url = "http://www.blick.ch/sport/tennis/rss.xml";}
+        if($rssFeed == "formula 1" ) {$url = "http://www.blick.ch/sport/formel1/rss.xml";}
+        if($rssFeed == "bike" ) {$url = "http://www.blick.ch/sport/rad/rss.xml";}
+        if($rssFeed == "people" ) {$url = "http://www.blick.ch/people-tv/rss.xml";}
+        if($rssFeed == "life" ) {$url = "http://www.blick.ch/life/rss";}
+        if($rssFeed == "fashion" ) {$url = "http://www.blick.ch/life/mode/rss.xml";}
+        if($rssFeed == "digital" ) {$url = "http://www.blick.ch/life/digital/rss.xml";}
+
+        $feed = new SimplePie();
+        $feed->set_feed_url($url);
+        $feed->enable_cache(false);
+        $success = $feed->init();
+           
+        if(!$success){
+            $item['title'] = "No news found";
+            $items['body'] = '';
+            $items['date'] = '';
+            $items['permalink'] = null;
+           return Response::json([ 
+                'item'   => $item,
+                'message' => 'No news found :('
+            ], 200);  
+        }       
+
+
+        if($success){  
+            $feed->handle_content_type(); 
+            $items = $feed->get_items();
+            $item = head($items);
+                $parsed['title'] = $item->get_title();
+                $parsed['body'] = $this->truncate(strip_tags($item->get_content()));
+                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
+                $parsed['image'] = str_replace('"', '', $image[2]);
+                $parsed['date'] = $item->get_date('j M Y, g:i a');
+                if ($item->get_permalink()){
+                    $parsed['permalink'] = $item->get_permalink();
+                }
+            $item = array_pull($items, 1); 
+                $next['title'] = $item->get_title();
+                $next['body'] = $this->truncate(strip_tags($item->get_content()));
+                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
+                $next['image'] = str_replace('"', '', $image[2]);
+                $next['date'] = $item->get_date('j M Y, g:i a');
+                if ($item->get_permalink()){
+                    $next['permalink'] = $item->get_permalink();
+                }
+            $item = array_pull($items, 2); 
+                $next2['title'] = $item->get_title();
+                $next2['body'] = $this->truncate(strip_tags($item->get_content()));
+                preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
+                $next2['image'] = str_replace('"', '', $image[2]);
+                $next2['date'] = $item->get_date('j M Y, g:i a');
+                if ($item->get_permalink()){
+                    $next2['permalink'] = $item->get_permalink();
+                }  
+        }
+        return Response::json([
+                'item'  => $parsed,
+                'next' => $next,
+                'last' => $next2,
+                'message'   => "Here is the latest news"
+            ], 200);
     }
 
 }
