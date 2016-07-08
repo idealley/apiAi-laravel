@@ -16,4 +16,10 @@ Route::get('/', function () {
 });
 
 Route::get('api/rss/{rssFeed}', 'RssController@feed');
+Route::post('api/api-ai', 'RssController@apiAi');
+Route::post('api/webhook', 'RssController@webhook');
+Route::get('api/webhook', 'RssController@webhook');
+Route::get('api/api-ai', 'RssController@apiAi');
 Route::get('user/{id}', 'UserController@show');
+Route::get('spotify', 'RssController@spotify');
+Route::get('test', 'RssController@test');

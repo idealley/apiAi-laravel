@@ -18,6 +18,9 @@
 		<link href="../css/base.min.css" rel="stylesheet">
 		<link href="../css/project.min.css" rel="stylesheet">
 		<!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+		<script src="js/jquery.js"></script>
+		 <script src="../js/responsive-voice.js"></script>
 	</head>
 	<body class="page-brand">
 		<header class="header header-transparent header-waterfall ui-header">
@@ -62,27 +65,10 @@
 									<section class="content">
 										<div class="grid">
 											<div class="grid__item">
-												<button type="button" onclick="app.start()" id="start" class="icobutton icobutton--microphone">
-													<span class="fa fa-microphone"></span>
-												</button>
-												<!-- We need to change the animation -->
-												
-											</div>
-											<h4 style="text-align:center; margin:2em auto 0;">Or use your keyboard...</h4>
-											<div class="grid__item" style="margin-top:0;">
-
-
-													<div class="form-group form-group-label form-group-brand">
-														<input 
-														id="text"
-														class="form-control" 
-														id="ui_floating_label_example_brand" 
-														type="text"
-														>
-														<button onclick="app.sendJson()" id="submit" class="btn btn-flat btn-brand">Interact</button>
-													</div>
-											</div>
-											
+										    <div>
+										        <input type="text" id="query" name="query"> 
+										        <button id="rec">Speak</button>
+										    </div>
 										</div>		
 									</section>		
 
@@ -90,7 +76,8 @@
 										
 									</section>
 
-																		<section>
+
+									<section>
 									<div style="display: flex">
 									    <div id="dialogue" class="half-panel" style="white-space: pre-line;width: 50%"></div>
 									    <div id="response" class="half-panel" style="white-space: pre;width: 50%;"></div>
@@ -110,7 +97,7 @@
 			<p></p>
 		</div>
 	</footer>
-	<div class="fbtn-container">
+	<!--<div class="fbtn-container">
 		<div class="fbtn-inner">
 			<a class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle waves-light" data-toggle="dropdown"><span class="fbtn-text fbtn-text-left">Links</span><span class="fbtn-ori icon">apps</span><span class="fbtn-sub icon">close</span></a>
 			<div class="fbtn-dropup">
@@ -119,20 +106,11 @@
 				<a class="fbtn fbtn-green waves-attach waves-circle" href="http://www.daemon.com.au/" target="_blank"><span class="fbtn-text fbtn-text-left">Visit Daemon Website</span><span class="icon">link</span></a>
 			</div>
 		</div>
-	</div>
+	</div>-->
 
 		<script src="js/jquery.js"></script>
-	<script type="text/javascript" src="js/api.ai.min.js"></script>
-	<script type="text/javascript" src="js/resampler.js"></script>
-<script type="text/javascript" src="js/recorderWorker.js"></script>
-<script type="text/javascript" src="js/recorder.js"></script>
-<script type="text/javascript" src="js/processors.js"></script>
-<script type="text/javascript" src="js/vad.js"></script>
-<script type="text/javascript" src="js/tts.js"></script>
-		<script src="js/mo.min.js"></script>
-		<script src="js/demo.js"></script>
-		<script src="/js/base.min.js"></script>
 		<script src="/js/project.min.js"></script>
+		<script src="/js/speech-recognition.js"></script>
 		<script src="/js/main.js"></script>
 	</body>
 </html>
