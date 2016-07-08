@@ -215,7 +215,7 @@ class RssController extends Controller
         $action = isset($results['result']['action']) ? $results['result']['action'] : false;
         $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
-        $speech =  $results['result']['speech'];
+        $speech =  isset($results['result']['speech']) ? $results['result']['speech'] : '';
         $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
         $contexts =  $results['result']['metadata']['contexts']; // array
         $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
