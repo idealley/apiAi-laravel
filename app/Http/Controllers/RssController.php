@@ -232,12 +232,16 @@ class RssController extends Controller
 
         If(!$action && $speech == '' && !$subject){
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
+            $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
 
         if($action == "show.news"){
-                $response = $this->feed($subject);
-                $allNews = json_decode($response->getContent(), true);
-                $answer['news'] = $allNews['item'];
+                if($subject){
+                    $response = $this->feed($subject);
+                    $allNews = json_decode($response->getContent(), true);
+                    $answer['news'] = $allNews['item'];
+                }
+
                 if($intent == "More info") {
                     $answer['news'] = $allNews['next'];
                 }
