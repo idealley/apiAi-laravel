@@ -18,7 +18,7 @@ class RssController extends Controller
     dd($result);
     }
     public function webhook(Request $request){
-        $results = json_decode($request->instance()->getContent());
+        $results = json_decode($request->instance()->getContent(), true);
    
         $subject = $results->result->parameters->subject;
         $speech = "Here are the latest news about ".$subject;
