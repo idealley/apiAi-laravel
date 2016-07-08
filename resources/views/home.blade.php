@@ -66,14 +66,14 @@
 										<div class="grid">
 											<div class="grid__item">
 										    	<div>
-										        	<button class="btn btn-brand id="rec">Speak</button>
+										        	<button class="btn btn-brand" id="rec">Speak</button>
 										    	</div>
 											</div>
 											<div class="grid__item" style="margin: 1em 0;">
 										    	<div>
 											        <div class="form-group form-group-label form-group-brand">
 														<label class="floating-label" for="ui_floating_label_example_brand">Or, ask with your keyboard</label>
-														<input class="form-control" id="query ui_floating_label_example_brand" type="text">
+														<input class="form-control" id="query" type="text">
 														<div class="form-help">
 															<p>Use the Enter Key to validate your input</p>
 														</div>
