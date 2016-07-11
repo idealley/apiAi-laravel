@@ -333,7 +333,7 @@ class RssController extends Controller
 
         $item = head($items['value']);
         $parsed['title'] = $item['name'];
-        $parsed['image'] = $item['image']['thumbnail']['contentUrl'];
+        //$parsed['image'] = $item['image']['thumbnail']['contentUrl'];
         //Call to Alchemy to get the full body and the emotions
         $emotion = $client->post (url('api/emotion'), array(
             'json' => array(
