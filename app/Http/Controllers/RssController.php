@@ -17,14 +17,19 @@ class RssController extends Controller
     $result = file_get_contents('http://requestb.in/usbje1us');
     dd($result);
     }
+
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
 
         $answer = $this->answer($results);
+
+        $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
+
+
         if(isset($answer['news']['title'])){
             $speech = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
-            $text = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+            $text = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." url: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
             $text = $answer['speech'];
@@ -114,6 +119,23 @@ class RssController extends Controller
 
     }
 
+    public function getEmotion(Request $request){
+        
+        //$url = $request->input('url');
+        $results = json_decode($request->getContent(), true);
+        $url = rawurldecode($results['url']);
+        $parts = parse_url($url);
+        parse_str($parts['query'], $query);
+        $url = $query['r'];
+
+        $client = new Client();
+
+        $response = $client->get('https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned_or_raw&outputMode=json');
+
+        return $response->json();
+
+    }
+
     /**
     * Parse the results received from API.AI and parse it with some logic to
     * get some news or music to display
@@ -152,15 +174,25 @@ class RssController extends Controller
         } 
         //with Webhook action is false...
         if($action == "show.news" || $webhookUsed){
-                if($subject){
+                if($subject && ($adjective == "local" || $adjective == "swiss")){
                     $response = $this->feed($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
+                    
+                    if($intent == "More info") {
+                        $answer['news'] = $allNews['next'];
+                    }                    
+                }
+                if($subject && ($adjective != "local" || $adjective != "swiss")){
+                    $response = $this->getNews($subject);
+                    $allNews = json_decode($response->getContent(), true);
+                    $answer['news'] = $allNews['item'];
+
+                    if($intent == "More info") {
+                        $answer['news'] = $allNews['next'];
+                    }
                 }
 
-                if($intent == "More info") {
-                    $answer['news'] = $allNews['next'];
-                }
         }
         //the domain using this action is not free
         if($action == "news.search"){
@@ -286,5 +318,60 @@ class RssController extends Controller
                 'message'   => "Here is the latest news"
             ], 200);
     }
+
+        public function getNews($query){
+
+        $client = new Client();
+
+        $response = $client->get('https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=3&offset=0&mkt=en-us&safeSearch=Moderate&originalImg=1', array(
+            'headers' => array(
+                'Ocp-Apim-Subscription-Key' => env('BING_SEARCH')
+            )
+            ));
+
+        $items = $response->json();
+
+        $item = head($items['value']);
+        $parsed['title'] = $item['name'];
+        $parsed['image'] = $item['image']['thumbnail']['contentUrl'];
+        //Call to Alchemy to get the full body and the emotions
+        $emotion = $client->post (url('api/emotion'), array(
+            'json' => array(
+                "url" => $item['url']
+            )
+            ));
+        $results = $emotion->json();
+        $parsed['body'] = $results['text'];
+        $parsed['emotions'] = $results['docEmotions']; 
+        $parsed['permalink'] = $results['url'];
+
+        $item = array_pull($items['value'], 1);
+        $next['title'] = $item['name'];
+        $next['image'] = $item['image']['thumbnail']['contentUrl'];
+        //Call to Alchemy to get the full body and the emotions
+        $emotion = $client->post (url('api/emotion'), array(
+            'json' => array(
+                "url" => $item['url']
+            )
+            ));
+        $results = $emotion->json();
+        $next['body'] = $results['text'];
+        $next['emotions'] = $results['docEmotions']; 
+        $next['permalink'] = $results['url'];
+
+        //$item = array_pull($items, 1); 
+
+        //$item = array_pull($items, 2); 
+        return Response::json([
+                'item'  => $parsed,
+                'next' => $next,
+                //'last' => $next2,
+                'message'   => "Here is the latest news"
+            ], 200);
+
+
+    }
+
+
 
 }
