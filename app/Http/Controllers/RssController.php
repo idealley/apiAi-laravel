@@ -40,7 +40,10 @@ class RssController extends Controller
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => ['Attachments' => ['type' => 'Image', 'originalBase64' => base64_encode($answer['news']['image'])],
+                    'data' => ['Attachments' => 
+                                ['type' => 'Image', 
+                                'originalBase64' => base64_encode($answer['news']['image'])]
+                                ],
                     'contextOut' => [],
                     'source' => $answer['news']['permalink']
             ], 200);
