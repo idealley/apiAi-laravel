@@ -217,7 +217,14 @@ class RssController extends Controller
         }
 
         if($action == "play.music" || ($webhookUsed && $music)){
-            $songs = $this->spotify($subject);
+            if(!empty($subject)){
+                $songs = $this->spotify($subject);
+            } elseif (!empty($adjective)) {
+                $songs = $this->spotify($adjective);
+            } else {
+                $songs = $this->spotify('opera');
+            }
+            
             if($songs != null){ 
                 $answer['music'] = $songs['playing'];
                 if($intent == "next song") {
