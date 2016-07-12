@@ -51,7 +51,7 @@ class RssController extends Controller
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => '',
+                    'data' => '{}',
                     'contextOut' => [],
                     'source' => $answer['news']['permalink']
             ], 200);
