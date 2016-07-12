@@ -24,12 +24,26 @@ class RssController extends Controller
 
         $answer = $this->answer($results);
 
+        return $answer['news']['emotions'];
+
+        $anger = ":@ :-@ :=@ x( x-( x=( X( X- (X=(";
+        $happy = "(happy)";
+        $sad = ";( ;-( ;=(";
+        $disgust = "(puke)";
+        $fear = ":S :-S :=S :s :-s :=s";
+
         $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
+
+        if ($emotions[0] == "anger"){$emotion = $anger};
+        if ($emotions[0] == "disgust"){$emotion = $disgust};
+        if ($emotions[0] == "fear"){$emotion = $fear};
+        if ($emotions[0] == "joy"){$emotion = $happy};
+        if ($emotions[0] == "sadness"){$emotion = $sad};
 
 
         if(isset($answer['news']['title'])){
-            $speech = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." - url: ".$answer['news']['permalink'];
-            $text = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." - url: ".$answer['news']['permalink'];
+            $speech = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n'.$emotion.'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
+            $text = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
             $text = $answer['speech'];
@@ -40,10 +54,7 @@ class RssController extends Controller
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => ['Attachments' => 
-                                ['type' => 'Image', 
-                                'originalBase64' => base64_encode($answer['news']['image'])]
-                                ],
+                    'data' => '',
                     'contextOut' => [],
                     'source' => $answer['news']['permalink']
             ], 200);
