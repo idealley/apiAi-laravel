@@ -29,7 +29,7 @@ class RssController extends Controller
 
         if(isset($answer['news']['title'])){
             $speech = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
-            $text = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." url: ".$answer['news']['permalink'];
+            $text = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." - url: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
             $text = $answer['speech'];
@@ -42,7 +42,7 @@ class RssController extends Controller
                     'displayText' => $text,
                     'data' => '',
                     'contextOut' => [],
-                    'source' => "Blick.ch"
+                    'source' => $answer['news']['permalink']
             ], 200);
 
     }
@@ -333,7 +333,7 @@ class RssController extends Controller
 
         $item = head($items['value']);
         $parsed['title'] = $item['name'];
-        //$parsed['image'] = $item['image']['thumbnail']['contentUrl'];
+        $parsed['image'] = $item['image']['thumbnail']['contentUrl'];
         //Call to Alchemy to get the full body and the emotions
         $emotion = $client->post (url('api/emotion'), array(
             'json' => array(
