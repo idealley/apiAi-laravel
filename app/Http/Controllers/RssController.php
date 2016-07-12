@@ -21,12 +21,10 @@ class RssController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-
         $answer = $this->answer($results);
         $source = 'Not Set';
 
-        
-    if($answer['intent'] != 'music'){
+    if(!$answer['music']){
         if($answer['news']['emotions']){
             $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
             $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
@@ -39,7 +37,7 @@ class RssController extends Controller
             $response = $answer['fulfillment'].": \n\n".$answer['music'];
         }
 
-        if(isset($answer['news']['title']) || $answer['intent'] == 'music'){
+        if(isset($answer['news']['title']) || $answer['music']){
             $speech = $response;
             $text = $response;
         } else {
@@ -175,7 +173,7 @@ class RssController extends Controller
         $answer['action'] = $action;
         $answer['news'] = '';
         //$answer['resolvedQuery'] = $resolvedQuery;
-        
+
         //start formating the response to the app
         $answer['speech'] = $speech;
         // speech response for webhooks call
@@ -186,14 +184,16 @@ class RssController extends Controller
             $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
         //with Webhook action is false...
-        if($action == "show.news" || ($webhookUsed && $intent != "music")){
+        $music = false;
+        if($intent != "music" || $intent != "next song"){$music = true;}
+        if($action == "show.news" || ($webhookUsed && !$music)){
                 $local = false;
                 if($adjective == "local" || $adjective == "swiss"){
                     $response = $this->feed($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
                     $local = true;
-                    
+                            
                     if($intent == "More info") {
                         $answer['news'] = $allNews['next'];
                     }                    
@@ -214,7 +214,7 @@ class RssController extends Controller
             //
         }
 
-        if($action == "play.music" || ($webhookUsed && $intent == 'music')){
+        if($action == "play.music" || ($webhookUsed && $music)){
             $songs = $this->spotify($subject);
             if($songs != null){ 
                 $answer['music'] = $songs['playing'];
