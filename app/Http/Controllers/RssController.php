@@ -7,6 +7,7 @@ use SimplePie;
 
 use App\Http\Requests;
 use Illuminate\Support\Facades\Response;
+use League\OAuth2\Client\Provider\GenericProvider;
 
 use GuzzleHttp\Client;
 
@@ -399,6 +400,21 @@ class RssController extends Controller
             ], 200);
 
 
+    }
+
+    public function skypeChat(){
+
+        $provider = new \Stevenmaguire\OAuth2\Client\Provider\Microsoft([
+            'clientId'          => env('MICROSOFT_APP_ID'),
+            'clientSecret'      => env('MICROSOFT_APP_SECRET'),
+            'redirectUri'       => 'http://news-agent.idealley.ch/skype'
+            ]);
+
+        $token = $provider->getAccessToken('authorization_code', [
+                'code' => $_GET['code']
+            ]);
+
+        dd($token->getToken());
     }
 
 
