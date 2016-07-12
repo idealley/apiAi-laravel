@@ -38,9 +38,8 @@ class RssController extends Controller
         if ($emotions[0] == "joy"){$emotion = $happy;}
         if ($emotions[0] == "sadness"){$emotion = $sad;}
 
-
         if(isset($answer['news']['title'])){
-            $speech = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n'.$emotion.'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
+            $speech = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n Title: ".$answer['news']['title']."\n\n text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
             $text = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
