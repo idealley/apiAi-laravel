@@ -24,8 +24,6 @@ class RssController extends Controller
 
         $answer = $this->answer($results);
 
-        return $answer['news']['emotions'];
-
         $anger = ":@ :-@ :=@ x( x-( x=( X( X- (X=(";
         $happy = "(happy)";
         $sad = ";( ;-( ;=(";
