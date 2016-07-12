@@ -14,6 +14,7 @@ class VerifyCsrfToken extends BaseVerifier
     protected $except = [
         'api/api-ai',
         'api/webhook',
-        'api/emotion'
+        'api/emotion',
+        'test'
     ];
 }

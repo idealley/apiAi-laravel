@@ -24,5 +24,5 @@ Route::get('api/news/{query}', 'RssController@getNews');
 Route::post('api/emotion', 'RssController@getEmotion');
 Route::get('user/{id}', 'UserController@show');
 Route::get('spotify', 'RssController@spotify');
-Route::get('test', 'RssController@test');
+Route::post('test', 'RssController@sendRequest');
 Route::get('skype', 'RssController@skypeChat');

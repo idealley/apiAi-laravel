@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Response;
 use League\OAuth2\Client\Provider\GenericProvider;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7\Request as GRequest;
+use GuzzleHttp\Psr7\Response as GResponse;
 
 class RssController extends Controller
 {
@@ -107,27 +109,28 @@ class RssController extends Controller
     * @return array
     */
     public function sendRequest($request){
-
-        $query = $request->input('query');
-
-        $client = new Client();
-
         $apiai_key = env('API_AI_ACCESS_TOKEN');
         $apiai_subscription_key = env('API_AI_DEV_TOKEN');
+        
+        $query = $request->input('query');
+        $client = new Client();
 
-        $response = $client->post('https://api.api.ai/v1/query', array(
-            'headers' => array(
-                'Authorization' => "Bearer {$apiai_key}",
-                'ocp-apim-subscription-key' => $apiai_subscription_key,
-                'Content-Type' => 'application/json; charset=utf-8'
-            ),
-            'json' => array(
-                "query" => $query,
-                "lang" => "en"
-            )
-            ));
+        $send = [
+        'headers' => 
+                [
+                'Content-Type' => 'application/json;charset=utf-8', 
+                'Authorization' => 'Bearer '.$apiai_key
+                ],
+         'body' => json_encode([                
+                'query' => $query, 
+                'lang' => 'en'
+                ])       
 
-        return $response->json();
+                ];            
+
+        $response = $client->post('https://api.api.ai/v1/query?v=20150910', $send);
+
+        return json_decode($response->getBody(),true);
 
     }
 
@@ -142,9 +145,9 @@ class RssController extends Controller
 
         $client = new Client();
 
-        $response = $client->get('https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned_or_raw&outputMode=json');
+        $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned_or_raw&outputMode=json');
 
-        return $response->json();
+        return $response->getBody();
 
     }
 
@@ -349,20 +352,19 @@ class RssController extends Controller
         public function getNews($query){
 
         $client = new Client();
-
-        $response = $client->get('https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=3&offset=0&mkt=en-us&safeSearch=Moderate&originalImg=1', array(
+        $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=3&offset=0&mkt=en-us&safeSearch=Moderate&originalImg=1', array(
             'headers' => array(
                 'Ocp-Apim-Subscription-Key' => env('BING_SEARCH')
             )
             ));
 
-        $items = $response->json();
+        $items = json_decode($response->getBody(), true);
 
         $item = head($items['value']);
         $parsed['title'] = $item['name'];
         $parsed['image'] = $item['image']['thumbnail']['contentUrl'];
         //Call to Alchemy to get the full body and the emotions
-        $emotion = $client->post(url('api/emotion'), array(
+        $emotion = $client->request('POST', url('api/emotion'), array(
             'headers' => array(
                 'Content-Type' => 'application/json; charset=utf-8'
             ),
@@ -370,7 +372,7 @@ class RssController extends Controller
                 "url" => $item['url']
             )
             ));
-        $results = $emotion->json();
+        $results = json_decode($emotion->getBody(),true);
         $parsed['body'] = $results['text'];
         $parsed['emotions'] = $results['docEmotions']; 
         $parsed['permalink'] = $results['url'];
@@ -379,16 +381,18 @@ class RssController extends Controller
         $next['title'] = $item['name'];
         $next['image'] = $item['image']['thumbnail']['contentUrl'];
         //Call to Alchemy to get the full body and the emotions
-        $emotion = $client->post (url('api/emotion'), array(
+        $emotion = $client->request('POST', url('api/emotion'), array(
+            'headers' => array(
+                'Content-Type' => 'application/json; charset=utf-8'
+            ),
             'json' => array(
                 "url" => $item['url']
             )
             ));
-        $results = $emotion->json();
+        $results = json_decode($emotion->getBody(),true);
         $next['body'] = $results['text'];
         $next['emotions'] = $results['docEmotions']; 
         $next['permalink'] = $results['url'];
-
         //$item = array_pull($items, 1); 
 
         //$item = array_pull($items, 2); 
@@ -432,11 +436,11 @@ class RssController extends Controller
 
         $client = new Client();
 
-        $client->get('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
+        $client->request('GET'.'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
 
         $accessToken = $request->input('id_token');
         
-            $response = $client->post('https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+            $response = $client->request('POST'.'https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
                 'headers' => array(
                     'Authorization' => "Bearer {$accessToken}",
                     'Content-Type' => 'application/json; charset=utf-8'
@@ -456,7 +460,7 @@ class RssController extends Controller
         $client = new Client();
             $accessToken = $request->input('id_token');
         
-            $response = $client->post('https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+            $response = $client->request('POST'.'https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
                 'headers' => array(
                     'Authorization' => "Bearer {$accessToken}",
                     'Content-Type' => 'application/json; charset=utf-8'
