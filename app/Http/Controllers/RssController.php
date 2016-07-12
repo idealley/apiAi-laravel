@@ -402,19 +402,73 @@ class RssController extends Controller
 
     }
 
-    public function skypeChat(){
+    public function skypeChat(Request $request){
 
-        $provider = new \Stevenmaguire\OAuth2\Client\Provider\Microsoft([
+       /* $provider = new \Stevenmaguire\OAuth2\Client\Provider\Microsoft([
             'clientId'          => env('MICROSOFT_APP_ID'),
             'clientSecret'      => env('MICROSOFT_APP_SECRET'),
-            'redirectUri'       => 'http://news-agent.idealley.ch/skype'
+            'redirectUri'       => 'https://news-agent.idealley.ch/skype'
             ]);
 
-        $token = $provider->getAccessToken('authorization_code', [
-                'code' => $_GET['code']
+        if (!$request->input('code')) {
+
+                // If we don't have an authorization code then get one
+                $authUrl = $provider->getAuthorizationUrl();
+                $_SESSION['oauth2state'] = $provider->getState();
+                header('Location: '.$authUrl);
+
+            // Check given state against previously stored one to mitigate CSRF attack
+            }
+        if ($request->input('code')) {
+            $code = $request->input('code');
+            $token = $provider->getAccessToken('authorization_code', [
+                'code' => $code
             ]);
 
-        dd($token->getToken());
+            $accessToken = $token->getToken();
+        } */
+
+        $redirectUrl = urlencode('https://news-agent.idealley.ch/skype');
+
+        $client = new Client();
+
+        $client->get('https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
+
+        $accessToken = $request->input('id_token');
+        
+            $response = $client->post('https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+                'headers' => array(
+                    'Authorization' => "Bearer {$accessToken}",
+                    'Content-Type' => 'application/json; charset=utf-8'
+                ),
+                'json' => array(
+                    "message" =>  ["content" => "Hi! (wave)"]
+                )
+                ));
+ 
+            dd($response); 
+
+
+    }
+
+    public function skypeChatOld(Request $request){
+
+        $client = new Client();
+            $accessToken = $request->input('id_token');
+        
+            $response = $client->post('https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+                'headers' => array(
+                    'Authorization' => "Bearer {$accessToken}",
+                    'Content-Type' => 'application/json; charset=utf-8'
+                ),
+                'json' => array(
+                    "message" =>  ["content" => "Hi! (wave)"]
+                )
+                ));
+ 
+            dd($response); 
+
+
     }
 
 
