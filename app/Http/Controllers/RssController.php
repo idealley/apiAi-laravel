@@ -32,11 +32,11 @@ class RssController extends Controller
 
         $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
 
-        if ($emotions[0] == "anger"){$emotion = $anger};
-        if ($emotions[0] == "disgust"){$emotion = $disgust};
-        if ($emotions[0] == "fear"){$emotion = $fear};
-        if ($emotions[0] == "joy"){$emotion = $happy};
-        if ($emotions[0] == "sadness"){$emotion = $sad};
+        if ($emotions[0] == "anger"){$emotion = $anger;}
+        if ($emotions[0] == "disgust"){$emotion = $disgust;}
+        if ($emotions[0] == "fear"){$emotion = $fear;}
+        if ($emotions[0] == "joy"){$emotion = $happy;}
+        if ($emotions[0] == "sadness"){$emotion = $sad;}
 
 
         if(isset($answer['news']['title'])){
