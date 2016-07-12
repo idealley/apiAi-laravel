@@ -24,22 +24,10 @@ class RssController extends Controller
 
         $answer = $this->answer($results);
 
-        $anger = ":@ :-@ :=@ x( x-( x=( X( X- (X=(";
-        $happy = "(happy)";
-        $sad = ";( ;-( ;=(";
-        $disgust = "(puke)";
-        $fear = ":S :-S :=S :s :-s :=s";
-
         $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
 
-        if ($emotions[0] == "anger"){$emotion = $anger;}
-        if ($emotions[0] == "disgust"){$emotion = $disgust;}
-        if ($emotions[0] == "fear"){$emotion = $fear;}
-        if ($emotions[0] == "joy"){$emotion = $happy;}
-        if ($emotions[0] == "sadness"){$emotion = $sad;}
-
         if(isset($answer['news']['title'])){
-            $speech = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".'"'.$emotion.'"'."\n\nTitle: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+            $speech = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."\n\nTitle: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
             $text = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
