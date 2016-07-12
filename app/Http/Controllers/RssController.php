@@ -23,12 +23,25 @@ class RssController extends Controller
         $results = json_decode($request->getContent(), true);
 
         $answer = $this->answer($results);
+        $source = '';
 
-        $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
+        
+    if($answer['intent'] != 'music'){
+        if($answer['news']['emotions']){
+            $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
+            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+            $source = $answer['news']['permalink'];
+        } else {
+            $response = "Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+            $source = $answer['news']['permalink'];
+        }
+    } else {
+            $response = $answer['fulfillment'].": \n\n".$answer['music'];
+        }
 
-        if(isset($answer['news']['title'])){
-            $speech = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."\n\nTitle: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
-            $text = $answer['fulfillment'] .'\n\n Watson found that this article main emotion is: '.$emotions[0].'\n\n Title: '.$answer['news']['title']." text: ".$answer['news']['body']."\n\n Read Original Article: ".$answer['news']['permalink'];
+        if(isset($answer['news']['title']) || $answer['intent'] == 'music'){
+            $speech = $response;
+            $text = $response;
         } else {
             $speech = $answer['speech'];
             $text = $answer['speech'];
@@ -41,7 +54,7 @@ class RssController extends Controller
                     'displayText' => $text,
                     'data' => '',
                     'contextOut' => [],
-                    'source' => $answer['news']['permalink']
+                    'source' => $source
             ], 200);
 
     }
@@ -160,6 +173,7 @@ class RssController extends Controller
         $answer['contexts'] = $contexts;
         $answer['intent'] = $intent;
         $answer['action'] = $action;
+        $answer['news'] = '';
         //$answer['resolvedQuery'] = $resolvedQuery;
         
         //start formating the response to the app
@@ -172,17 +186,19 @@ class RssController extends Controller
             $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
         //with Webhook action is false...
-        if($action == "show.news" || $webhookUsed){
-                if($subject && ($adjective == "local" || $adjective == "swiss")){
+        if($action == "show.news" || ($webhookUsed && $intent != "music")){
+                $local = false;
+                if($adjective == "local" || $adjective == "swiss"){
                     $response = $this->feed($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
+                    $local = true;
                     
                     if($intent == "More info") {
                         $answer['news'] = $allNews['next'];
                     }                    
                 }
-                if($subject && ($adjective != "local" || $adjective != "swiss")){
+                if(!$local){
                     $response = $this->getNews($subject);
                     $allNews = json_decode($response->getContent(), true);
                     $answer['news'] = $allNews['item'];
@@ -198,7 +214,7 @@ class RssController extends Controller
             //
         }
 
-        if($action == "play.music"){
+        if($action == "play.music" || ($webhookUsed && $intent == 'music')){
             $songs = $this->spotify($subject);
             if($songs != null){ 
                 $answer['music'] = $songs['playing'];
@@ -288,6 +304,7 @@ class RssController extends Controller
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $parsed['image'] = str_replace('"', '', $image[2]);
                 $parsed['date'] = $item->get_date('j M Y, g:i a');
+                $parsed['emotions'] = false; 
                 if ($item->get_permalink()){
                     $parsed['permalink'] = $item->get_permalink();
                 }
@@ -297,6 +314,7 @@ class RssController extends Controller
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next['image'] = str_replace('"', '', $image[2]);
                 $next['date'] = $item->get_date('j M Y, g:i a');
+                $next['emotions'] = false; 
                 if ($item->get_permalink()){
                     $next['permalink'] = $item->get_permalink();
                 }
@@ -306,6 +324,7 @@ class RssController extends Controller
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next2['image'] = str_replace('"', '', $image[2]);
                 $next2['date'] = $item->get_date('j M Y, g:i a');
+                $next2['emotions'] = false; 
                 if ($item->get_permalink()){
                     $next2['permalink'] = $item->get_permalink();
                 }  
