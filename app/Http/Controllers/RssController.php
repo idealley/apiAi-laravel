@@ -23,8 +23,9 @@ class RssController extends Controller
         $results = json_decode($request->getContent(), true);
         $answer = $this->answer($results);
         $source = 'Not Set';
+        $music = isset($answer['music']) ? $answer['music'] : false;
 
-    if(!$answer['music']){
+    if(!$music){
         if($answer['news']['emotions']){
             $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
             $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
@@ -37,7 +38,7 @@ class RssController extends Controller
             $response = $answer['fulfillment'].": \n\n".$answer['music'];
         }
 
-        if(isset($answer['news']['title']) || $answer['music']){
+        if(isset($answer['news']['title']) || $music){
             $speech = $response;
             $text = $response;
         } else {
@@ -185,7 +186,8 @@ class RssController extends Controller
         } 
         //with Webhook action is false...
         $music = false;
-        if($intent != "music" || $intent != "next song"){$music = true;}
+        if($intent == "music" || $intent == "next song"){$music = true;}
+
         if($action == "show.news" || ($webhookUsed && !$music)){
                 $local = false;
                 if($adjective == "local" || $adjective == "swiss"){
@@ -232,7 +234,6 @@ class RssController extends Controller
                     $answer['music'] = $songs['next'];
                 }
         } 
-
         return $answer;
     }
 
