@@ -23,7 +23,7 @@ class RssController extends Controller
         $results = json_decode($request->getContent(), true);
 
         $answer = $this->answer($results);
-        $source = '';
+        $source = 'Not Set';
 
         
     if($answer['intent'] != 'music'){
