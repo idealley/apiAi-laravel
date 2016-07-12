@@ -28,7 +28,7 @@ class RssController extends Controller
 
 
         if(isset($answer['news']['title'])){
-            $speech = $answer['fulfillment'] .' - title: '.$answer['news']['title']." text: ".$answer['news']['body'];
+            $speech = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." - url: ".$answer['news']['permalink'];
             $text = $answer['fulfillment'] .' Watson found that this article main emotion is: '.$emotions[0].' - title: '.$answer['news']['title']." text: ".$answer['news']['body']." - url: ".$answer['news']['permalink'];
         } else {
             $speech = $answer['speech'];
@@ -40,7 +40,7 @@ class RssController extends Controller
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => '',
+                    'data' => ['Attachments' => ['type' => 'Image', 'originalBase64' => base64_encode($answer['news']['image'])],
                     'contextOut' => [],
                     'source' => $answer['news']['permalink']
             ], 200);
