@@ -214,11 +214,15 @@ class RssController extends Controller
         //here we just format the news index
 
         if($data && !$music){
+            $emotions[0] = '';
+            if(isset($data['news']['emotions'])){
+                $emotions = array_keys($data['news']['emotions'], max($data['news']['emotions']));
+            }
             $answer['news'] = [
                 'title' => $data['news']['title'],
                 'image' => $data['news']['image'],
                 'body' => $data['news']['body'],
-                'emotion' => $data['news']['emotions'],
+                'emotion' => $emotions[0],
                 'permalink' => $data['news']['permalink'],
                 'requestFrom' => 'Webapp'
             ];

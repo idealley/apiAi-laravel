@@ -11,16 +11,16 @@ function send(){
             console.log(item);
 
             if(item.action == "smalltalk.greetings" || item.action == "news.search" || item.action == "wisdom.unknown"){
-            
+                responsiveVoice.speak(item.speech, 'UK English Female');
             }
             
             //If no emotion it is German... Just because Watson does not understand yet German. No hint here.
-            if(!item.news.emotion ){
+            if(!item.news.emotion && item.action != "smalltalk.greetings"){
                 responsiveVoice.speak('Here is what I found', 'UK English Female', {onend: speakGermanNews});
             }
 
             if(item.news.emotion){
-                responsiveVoice.speak(item.news.title + ' ' +item.news.body, 'UK English Female');
+                responsiveVoice.speak("According to Watson, the main emotion of this article is:" + item.news.emotion + ': ' + item.news.title + ' ' +item.news.body, 'UK English Female');
             }
 
             if(item.action == "play.music"){
@@ -36,13 +36,17 @@ function send(){
                     }
                 }
             }
+            var emotion = '';
+            if(item.news.emotion){
+                emotion = '<h4>Watson has found that this news reflects the following emotion: <b>'+item.news.emotion+'</b></h4>'
+            }
 
             if(item.action == "show.news") {
                 var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
                                         item.news.image
                                         +'" style="width: 100%;"></div>';
 
-                var content =   '<div class="card-inner"><h3>'+
+                var content =   '<div class="card-inner">'+ emotion +'<h3>'+
                                         item.news.title
                                         +'</h3><p>'+
                                         item.news.body
