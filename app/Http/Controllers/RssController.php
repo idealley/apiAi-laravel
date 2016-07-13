@@ -79,8 +79,6 @@ class RssController extends Controller
          }
         $answer = $this->answer($results);
 
-        dd($results);
-
         //Here we format the response for the JS on the frontend
         return Response::json([
                 'news'  => isset($answer['news']) ? $answer['news'] : null,
