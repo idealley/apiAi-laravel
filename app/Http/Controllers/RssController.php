@@ -30,8 +30,22 @@ class RssController extends Controller
 
     if(!$music){
         if($answer['news']['emotions']){
+
+            $anger = ":@";
+            $happy = "(happy)";
+            $sad = ";(";
+            $disgust = "(puke)";
+            $fear = ":S";
+
             $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
-            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+
+            if ($emotions[0] == "anger"){$emotion = $anger;}
+            if ($emotions[0] == "disgust"){$emotion = $disgust;}
+            if ($emotions[0] == "fear"){$emotion = $fear;}
+            if ($emotions[0] == "joy"){$emotion = $happy;}
+            if ($emotions[0] == "sadness"){$emotion = $sad;}
+
+            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
             $source = $answer['news']['permalink'];
         } else {
             $response = "Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
