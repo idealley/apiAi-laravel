@@ -423,6 +423,7 @@ class RssController extends Controller
         $results = json_decode($emotion->getBody(),true);
         $parsed['body'] = $results['text'];
         $parsed['emotions'] = $results['docEmotions']; 
+        $parsed['source'] = "The Web"; 
         $parsed['permalink'] = $results['url'];
 
         $item = array_pull($items['value'], 1);
@@ -439,7 +440,8 @@ class RssController extends Controller
             ));
         $results = json_decode($emotion->getBody(),true);
         $next['body'] = $results['text'];
-        $next['emotions'] = $results['docEmotions']; 
+        $next['emotions'] = $results['docEmotions'];         
+        $next['source'] = "The Web"; 
         $next['permalink'] = $results['url'];
         //$item = array_pull($items, 1); 
 
