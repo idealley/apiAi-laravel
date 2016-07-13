@@ -450,11 +450,11 @@ class RssController extends Controller
 
         $client = new Client();
 
-        $client->request('GET'.'https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
+        $client->request('GET','https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
 
         $accessToken = $request->input('id_token');
         
-            $response = $client->request('POST'.'https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+            $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
                 'headers' => array(
                     'Authorization' => "Bearer {$accessToken}",
                     'Content-Type' => 'application/json; charset=utf-8'
@@ -474,7 +474,7 @@ class RssController extends Controller
         $client = new Client();
             $accessToken = $request->input('id_token');
         
-            $response = $client->request('POST'.'https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
+            $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
                 'headers' => array(
                     'Authorization' => "Bearer {$accessToken}",
                     'Content-Type' => 'application/json; charset=utf-8'
