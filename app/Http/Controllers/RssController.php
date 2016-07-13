@@ -15,12 +15,6 @@ use GuzzleHttp\Psr7\Response as GResponse;
 
 class RssController extends Controller
 {
-    public function test(){
-
-    $result = file_get_contents('http://requestb.in/usbje1us');
-    dd($result);
-    }
-
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
@@ -45,14 +39,16 @@ class RssController extends Controller
             if ($emotions[0] == "joy"){$emotion = $happy;}
             if ($emotions[0] == "sadness"){$emotion = $sad;}
 
-            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n"."Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+            $body = $this->truncate($answer['news']['body']);
+
+            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
             $source = $answer['news']['permalink'];
         } else {
-            $response = "Title: ".$answer['news']['title']."\n\nText: ".$answer['news']['body']."\n\nRead Original Article: ".$answer['news']['permalink'];
+            $response = "Title: ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
             $source = $answer['news']['permalink'];
         }
     } else {
-            $response = $answer['fulfillment'].": \n\n".$answer['music'];
+            $response = $answer['fulfillment'].": \n\n (music) \n\n".$answer['music'];
         }
 
         if(isset($answer['news']['title']) || $music){
@@ -262,7 +258,7 @@ class RssController extends Controller
         return $answer;
     }
 
-    public function truncate($string, $length=500, $append="&hellip;"){
+    public function truncate($string, $length = 100, $append = "..."){
         $string = trim($string);
 
         if(strlen($string) > $length) {
@@ -422,73 +418,43 @@ class RssController extends Controller
 
     public function skypeChat(Request $request){
 
-       /* $provider = new \Stevenmaguire\OAuth2\Client\Provider\Microsoft([
-            'clientId'          => env('MICROSOFT_APP_ID'),
-            'clientSecret'      => env('MICROSOFT_APP_SECRET'),
-            'redirectUri'       => 'https://news-agent.idealley.ch/skype'
-            ]);
-
-        if (!$request->input('code')) {
-
-                // If we don't have an authorization code then get one
-                $authUrl = $provider->getAuthorizationUrl();
-                $_SESSION['oauth2state'] = $provider->getState();
-                header('Location: '.$authUrl);
-
-            // Check given state against previously stored one to mitigate CSRF attack
-            }
-        if ($request->input('code')) {
-            $code = $request->input('code');
-            $token = $provider->getAccessToken('authorization_code', [
-                'code' => $code
-            ]);
-
-            $accessToken = $token->getToken();
-        } */
-
         $redirectUrl = urlencode('https://news-agent.idealley.ch/skype');
 
         $client = new Client();
 
-        $client->request('GET','https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id='.env('MICROSOFT_APP_ID').'&response_type=id_token&redirect_uri='.$redirectUrl.'&scope=openid&response_mode=query&state=12345&nonce=678910');
+        $response = $client->request('POST','https://login.microsoftonline.com/common/oauth2/v2.0/token', ["form_params" => [
+                "client_id" => env('MICROSOFT_APP_ID'),
+                "client_secret" => env('MICROSOFT_APP_SECRET'),
+                'grant_type' => 'client_credentials',
+                'scope' => 'https://graph.microsoft.com/.default'
+            ]]);
 
-        $accessToken = $request->input('id_token');
-        
-            $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
-                'headers' => array(
-                    'Authorization' => "Bearer {$accessToken}",
-                    'Content-Type' => 'application/json; charset=utf-8'
-                ),
-                'json' => array(
-                    "message" =>  ["content" => "Hi! (wave)"]
-                )
-                ));
+        $token = json_decode($response->getBody(), true);
+        $accessToken = $token['access_token'];
+        //tanushechka.krasotushechka
+        $username = 'samuel.pouyt';
+        //$username = "tanushechka.krasotushechka";
+
+        $send = [
+            'headers' => 
+                    [
+                    'Content-Type' => 'application/json;charset=utf-8', 
+                    'Authorization' => 'Bearer '.$accessToken
+                    ],
+             'json' => [                
+                    'message' => [
+                        'content' => "Hi! (wave)\nHere are the latest news that I thought could interest you: 
+                        \n (bell) First news
+                        \n (bell) Second news
+                        \n (bell) Third news"
+                        ]
+                    ]  
+                ];  
+        $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:'.$username.'/activities', $send);
  
-            dd($response); 
+        return "The message has been sent"; 
 
 
     }
-
-    public function skypeChatOld(Request $request){
-
-        $client = new Client();
-            $accessToken = $request->input('id_token');
-        
-            $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:tanushechka.krasotushechka/activities', array(
-                'headers' => array(
-                    'Authorization' => "Bearer {$accessToken}",
-                    'Content-Type' => 'application/json; charset=utf-8'
-                ),
-                'json' => array(
-                    "message" =>  ["content" => "Hi! (wave)"]
-                )
-                ));
- 
-            dd($response); 
-
-
-    }
-
-
 
 }
