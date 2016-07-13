@@ -21,8 +21,9 @@ class RssController extends Controller
         $answer = $this->answer($results);
         $source = 'Not Set';
         $music = isset($answer['music']) ? $answer['music'] : false;
+
         if(!$music){
-            $body = $this->truncate($answer['news']['body']);
+            $body = $answer['news']['body'];
             
             if($answer['news']['emotions']){
 
@@ -44,7 +45,7 @@ class RssController extends Controller
                 $source = 'Watson and the Web';
             } else {
                 $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
-                $source = 'Local news, should be Blick';
+                $source = 'Local news, Blick.ch';
             }
         } else {
             $response = $answer['fulfillment'].": \n\n (music) \n\n".$answer['music'];
@@ -77,6 +78,7 @@ class RssController extends Controller
             $results['result']['metadata']['webhookUsed'] = "false";
             $results['webapp'] = true;
          }
+
         $answer = $this->answer($results);
 
         //Here we format the response for the JS on the frontend
@@ -217,7 +219,8 @@ class RssController extends Controller
                 'image' => $data['news']['image'],
                 'body' => $data['news']['body'],
                 'emotion' => $data['news']['emotions'],
-                'permalink' => $data['news']['permalink']
+                'permalink' => $data['news']['permalink'],
+                'requestFrom' => 'Webapp'
             ];
         }
         if($data && $music){
@@ -285,7 +288,7 @@ class RssController extends Controller
         return $answer;
     }
 
-    public function truncate($string, $length = 100, $append = "..."){
+    public function truncate($string, $length = 300, $append = "..."){
         $string = trim($string);
 
         if(strlen($string) > $length) {
@@ -348,8 +351,9 @@ class RssController extends Controller
             $feed->handle_content_type(); 
             $items = $feed->get_items();
             $item = head($items);
+                $parsed['source'] = "Blick.ch";
                 $parsed['title'] = $item->get_title();
-                $parsed['body'] = $this->truncate(strip_tags($item->get_content()));
+                $parsed['body'] = $item->get_content();
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $parsed['image'] = str_replace('"', '', $image[2]);
                 $parsed['date'] = $item->get_date('j M Y, g:i a');
@@ -358,8 +362,9 @@ class RssController extends Controller
                     $parsed['permalink'] = $item->get_permalink();
                 }
             $item = array_pull($items, 1); 
+                $next['source'] = "Blick.ch";
                 $next['title'] = $item->get_title();
-                $next['body'] = $this->truncate(strip_tags($item->get_content()));
+                $next['body'] = $item->get_content();
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next['image'] = str_replace('"', '', $image[2]);
                 $next['date'] = $item->get_date('j M Y, g:i a');
@@ -368,8 +373,9 @@ class RssController extends Controller
                     $next['permalink'] = $item->get_permalink();
                 }
             $item = array_pull($items, 2); 
+                $next2['source'] = "Blick.ch";
                 $next2['title'] = $item->get_title();
-                $next2['body'] = $this->truncate(strip_tags($item->get_content()));
+                $next2['body'] = $item->get_content();
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next2['image'] = str_replace('"', '', $image[2]);
                 $next2['date'] = $item->get_date('j M Y, g:i a');

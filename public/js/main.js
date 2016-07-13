@@ -7,21 +7,29 @@ function send(){
             'query': text
         },
         function(item) {
-
+            console.log('>>>>>>> the item object (bellow):');
             console.log(item);
+
+            if(item.action == "smalltalk.greetings" || item.action == "news.search" || item.action == "wisdom.unknown"){
             
-            if(item.action != "play.music" ){
-                responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakNews});
+            }
+            
+            //If no emotion it is German... Just because Watson does not understand yet German. No hint here.
+            if(!item.news.emotion ){
+                responsiveVoice.speak('Here is what I found', 'UK English Female', {onend: speakGermanNews});
+            }
+
+            if(item.news.emotion){
+                responsiveVoice.speak(item.news.title + ' ' +item.news.body, 'UK English Female');
             }
 
             if(item.action == "play.music"){
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: playMusic});
             }
             
-            function speakNews(){ //no need to pass the object...
+            function speakGermanNews(){ //no need to pass the object...
                 if(item.news.title){
-
-                responsiveVoice.speak(item.news.title + item.news.body, "Deutsch Female");
+                    responsiveVoice.speak(item.news.title + item.news.body, "Deutsch Female");
                 } else {
                     if(item.action !== "smalltalk.greetings"){           
                         responsiveVoice.speak("Sorry, No news found");
@@ -38,8 +46,6 @@ function send(){
                                         item.news.title
                                         +'</h3><p>'+
                                         item.news.body
-                                        +'</p><p>'+
-                                        item.news.date
                                         +'</p></div>';
                                     
                 if(!item.news.link) {
