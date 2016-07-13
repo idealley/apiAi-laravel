@@ -62,7 +62,7 @@ class RssController extends Controller
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => ['slack' => $answer],
+                    'data' => ['newsAgent' => $answer],
                     'contextOut' => [],
                     'source' => $source
             ], 200);
@@ -183,7 +183,7 @@ class RssController extends Controller
         $webhookUsed =  isset($results['result']['metadata']['webhookUsed']) ? $results['result']['metadata']['webhookUsed'] : false; // array
         $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
         $webapp = isset($results['webapp']) ? $results['webapp'] : false;
-        $data = isset($results['result']['fulfillment']['data']) ? $results['result']['fulfillment']['data'] : null;
+        $data = isset($results['result']['fulfillment']['data']['newsAgent']) ? $results['result']['fulfillment']['data']['newsAgent'] : null;
 
         //Defaults
         $answer['adjective'] = $adjective;
