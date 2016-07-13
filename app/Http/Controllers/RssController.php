@@ -203,26 +203,32 @@ class RssController extends Controller
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
             $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
+
+        $music = false;
+        if($intent == "music" || $intent == "next song"){
+                $music = true;
+            }
         //Now that we have the webhook implemented all request go through it so we already
         //have the answer. Of course some refactoring is needed...
 
         //here we just format the news index
-        if($data){
+
+        if($data && !$music){
             $answer['news'] = [
-                'title' => '',
-                'image' => '',
-                'body' => '',
-                'emotion' => '',
-                'permalink' => ''
+                'title' => $data['news']['title'],
+                'image' => $data['news']['image'],
+                'body' => $data['news']['body'],
+                'emotion' => $data['news']['emotions'],
+                'permalink' => $data['news']['permalink']
             ];
+        }
+        if($data && $music){
+            $answer['music'] = $data['music'];
         }
         //here we bypass    
         if(!$webapp){
             //with Webhook action is false...
-            $music = false;
-            if($intent == "music" || $intent == "next song"){
-                $music = true;
-            }
+
             if($action == "show.news" || ($webhookUsed == "true" && $music !== true)){
                     $local = false;
                     if($adjective == "local" || $adjective == "swiss"){
@@ -277,6 +283,8 @@ class RssController extends Controller
                     }
             }
         } 
+
+        dd($answer);
 
         return $answer;
     }
