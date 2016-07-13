@@ -214,15 +214,16 @@ class RssController extends Controller
         //here we just format the news index
 
         if($data && !$music){
-            $emotions[0] = '';
-            if(isset($data['news']['emotions'])){
+            $emotion = '';
+            if(isset($data['news']['emotions']) && $data['news']['source'] != "Blick.ch"){
                 $emotions = array_keys($data['news']['emotions'], max($data['news']['emotions']));
+                $emotion = $emotions[0];
             }
             $answer['news'] = [
                 'title' => $data['news']['title'],
                 'image' => $data['news']['image'],
                 'body' => $data['news']['body'],
-                'emotion' => $emotions[0],
+                'emotion' => $emotion,
                 'permalink' => $data['news']['permalink'],
                 'requestFrom' => 'Webapp'
             ];
@@ -357,7 +358,7 @@ class RssController extends Controller
             $item = head($items);
                 $parsed['source'] = "Blick.ch";
                 $parsed['title'] = $item->get_title();
-                $parsed['body'] = $item->get_content();
+                $parsed['body'] = strip_tags($item->get_content());
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $parsed['image'] = str_replace('"', '', $image[2]);
                 $parsed['date'] = $item->get_date('j M Y, g:i a');
@@ -368,7 +369,7 @@ class RssController extends Controller
             $item = array_pull($items, 1); 
                 $next['source'] = "Blick.ch";
                 $next['title'] = $item->get_title();
-                $next['body'] = $item->get_content();
+                $next['body'] = strip_tags($item->get_content());
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next['image'] = str_replace('"', '', $image[2]);
                 $next['date'] = $item->get_date('j M Y, g:i a');
@@ -379,7 +380,7 @@ class RssController extends Controller
             $item = array_pull($items, 2); 
                 $next2['source'] = "Blick.ch";
                 $next2['title'] = $item->get_title();
-                $next2['body'] = $item->get_content();
+                $next2['body'] = strip_tags($item->get_content());
                 preg_match('/(src)=("[^"]*")/i',$item->get_content(), $image);
                 $next2['image'] = str_replace('"', '', $image[2]);
                 $next2['date'] = $item->get_date('j M Y, g:i a');
