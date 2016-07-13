@@ -7,6 +7,8 @@ function send(){
             'query': text
         },
         function(item) {
+
+            console.log(item);
             
             if(item.action != "play.music" ){
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakNews});
@@ -18,9 +20,12 @@ function send(){
             
             function speakNews(){ //no need to pass the object...
                 if(item.news.title){
+
                 responsiveVoice.speak(item.news.title + item.news.body, "Deutsch Female");
                 } else {
-                    responsiveVoice.speak("Sorry, No news found");
+                    if(item.action !== "smalltalk.greetings"){           
+                        responsiveVoice.speak("Sorry, No news found");
+                    }
                 }
             }
 

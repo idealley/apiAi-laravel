@@ -21,63 +21,65 @@ class RssController extends Controller
         $answer = $this->answer($results);
         $source = 'Not Set';
         $music = isset($answer['music']) ? $answer['music'] : false;
-
-    if(!$music){
-        if($answer['news']['emotions']){
-
-            $anger = ":@";
-            $happy = "(happy)";
-            $sad = ";(";
-            $disgust = "(puke)";
-            $fear = ":S";
-
-            $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
-
-            if ($emotions[0] == "anger"){$emotion = $anger;}
-            if ($emotions[0] == "disgust"){$emotion = $disgust;}
-            if ($emotions[0] == "fear"){$emotion = $fear;}
-            if ($emotions[0] == "joy"){$emotion = $happy;}
-            if ($emotions[0] == "sadness"){$emotion = $sad;}
-
+        if(!$music){
             $body = $this->truncate($answer['news']['body']);
+            
+            if($answer['news']['emotions']){
 
-            $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
-            $source = $answer['news']['permalink'];
+                $anger = ":@";
+                $happy = "(happy)";
+                $sad = ";(";
+                $disgust = "(puke)";
+                $fear = ":S";
+
+                $emotions = array_keys($answer['news']['emotions'], max($answer['news']['emotions']));
+
+                if ($emotions[0] == "anger"){$emotion = $anger;}
+                if ($emotions[0] == "disgust"){$emotion = $disgust;}
+                if ($emotions[0] == "fear"){$emotion = $fear;}
+                if ($emotions[0] == "joy"){$emotion = $happy;}
+                if ($emotions[0] == "sadness"){$emotion = $sad;}
+
+                $response = $answer['fulfillment']."\n\n Watson found that this article main emotion is: ".$emotions[0]."\n\n".$emotion."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
+                $source = 'Watson and the Web';
+            } else {
+                $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
+                $source = 'Local news, should be Blick';
+            }
         } else {
-            $response = "Title: ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['permalink'];
-            $source = $answer['news']['permalink'];
-        }
-    } else {
             $response = $answer['fulfillment'].": \n\n (music) \n\n".$answer['music'];
         }
 
         if(isset($answer['news']['title']) || $music){
-            $speech = $response;
-            $text = $response;
+                $speech = $response;
+                $text = $response;
         } else {
-            $speech = $answer['speech'];
-            $text = $answer['speech'];
-        }
-        
+                $speech = $answer['speech'];
+                $text = $answer['speech'];
+            }
 
         //this is a valid response for API.AI 
         return Response::json([
                     'speech'   => $speech,
                     'displayText' => $text,
-                    'data' => '',
+                    'data' => ['slack' => $answer],
                     'contextOut' => [],
                     'source' => $source
             ], 200);
 
     }
-    
 
 
     public function apiAi(Request $request){
 
         $results = $this->sendRequest($request);
-
+         if($request->path() == 'api/api-ai'){
+            $results['result']['metadata']['webhookUsed'] = "false";
+            $results['webapp'] = true;
+         }
         $answer = $this->answer($results);
+
+        dd($results);
 
         //Here we format the response for the JS on the frontend
         return Response::json([
@@ -168,9 +170,9 @@ class RssController extends Controller
     * @return array
     */
     public function answer($results){
-
         //setting defaults
         $answer = array();
+        $source = isset($results['result']['source']) ? $results['result']['source'] : false;
         $action = isset($results['result']['action']) ? $results['result']['action'] : false;
         $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
@@ -180,7 +182,10 @@ class RssController extends Controller
         $contexts =  isset($results['result']['metadata']['contexts']) ? $results['result']['metadata']['contexts'] : false; // array
         $webhookUsed =  isset($results['result']['metadata']['webhookUsed']) ? $results['result']['metadata']['webhookUsed'] : false; // array
         $resolvedQuery = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
+        $webapp = isset($results['webapp']) ? $results['webapp'] : false;
+        $data = isset($results['result']['fulfillment']['data']) ? $results['result']['fulfillment']['data'] : null;
 
+        //Defaults
         $answer['adjective'] = $adjective;
         $answer['subject'] = $subject;
         $answer['contexts'] = $contexts;
@@ -188,9 +193,9 @@ class RssController extends Controller
         $answer['action'] = $action;
         $answer['news'] = '';
         //$answer['resolvedQuery'] = $resolvedQuery;
-
+        
         //start formating the response to the app
-        $answer['speech'] = $speech;
+        $answer['speech'] = $fulfillment;
         // speech response for webhooks call
         $answer['fulfillment'] = $fulfillment;
 
@@ -198,63 +203,81 @@ class RssController extends Controller
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
             $answer['news'] = 'Nothing is happening right now. Check later!';
         } 
-        //with Webhook action is false...
-        $music = false;
-        if($intent == "music" || $intent == "next song"){$music = true;}
+        //Now that we have the webhook implemented all request go through it so we already
+        //have the answer. Of course some refactoring is needed...
 
-        if($action == "show.news" || ($webhookUsed && !$music)){
-                $local = false;
-                if($adjective == "local" || $adjective == "swiss"){
-                    $response = $this->feed($subject);
-                    $allNews = json_decode($response->getContent(), true);
-                    $answer['news'] = $allNews['item'];
-                    $local = true;
-                            
-                    if($intent == "More info") {
-                        $answer['news'] = $allNews['next'];
-                    }                    
-                }
-                if(!$local){
-                    $response = $this->getNews($subject);
-                    $allNews = json_decode($response->getContent(), true);
-                    $answer['news'] = $allNews['item'];
-
-                    if($intent == "More info") {
-                        $answer['news'] = $allNews['next'];
-                    }
-                }
-
+        //here we just format the news index
+        if($data){
+            $answer['news'] = [
+                'title' => '',
+                'image' => '',
+                'body' => '',
+                'emotion' => '',
+                'permalink' => ''
+            ];
         }
-        //the domain using this action is not free
-        if($action == "news.search"){
-            //
-        }
-
-        if($action == "play.music" || ($webhookUsed && $music)){
-            if(!empty($subject)){
-                $songs = $this->spotify($subject);
-            } elseif (!empty($adjective)) {
-                $songs = $this->spotify($adjective);
-            } else {
-                $songs = $this->spotify('opera');
+        //here we bypass    
+        if(!$webapp){
+            //with Webhook action is false...
+            $music = false;
+            if($intent == "music" || $intent == "next song"){
+                $music = true;
             }
-            
-            if($songs != null){ 
-                $answer['music'] = $songs['playing'];
-                if($intent == "next song") {
-                    $answer['music'] = $songs['next'];
+            if($action == "show.news" || ($webhookUsed == "true" && $music !== true)){
+                    $local = false;
+                    if($adjective == "local" || $adjective == "swiss"){
+                        $response = $this->feed($subject);
+                        $allNews = json_decode($response->getContent(), true);
+                        $answer['news'] = $allNews['item'];
+                        $local = true;
+                                
+                        if($intent == "More info") {
+                            $answer['news'] = $allNews['next'];
+                        }                    
+                    }
+                    if(!$local && $action != "request.news"){
+                        $response = $this->getNews($subject);
+                        $allNews = json_decode($response->getContent(), true);
+                        $answer['news'] = $allNews['item'];
+
+                        if($intent == "More info") {
+                            $answer['news'] = $allNews['next'];
+                        }
+                    }
+
+            }
+            //the domain using this action is not free
+            if($action == "news.search"){
+                //
+            }
+
+            if($action == "play.music" || ($webhookUsed && $music)){
+                if(!empty($subject)){
+                    $songs = $this->spotify($subject);
+                } elseif (!empty($adjective)) {
+                    $songs = $this->spotify($adjective);
+                } else {
+                    $songs = $this->spotify('opera');
                 }
-            }    
-        }
-        //the domain using this action is not free
-        if($action == "wisdom.unknown"){
-                $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
-                $songs = $this->spotify('opera');
-                $answer['music'] = $songs['playing'];
-                if($intent == "next song") {
-                    $answer['music'] = $songs['next'];
-                }
+                
+                if($songs != null){ 
+                    $answer['music'] = $songs['playing'];
+                    if($intent == "next song") {
+                        $answer['music'] = $songs['next'];
+                    }
+                }    
+            }
+            //the domain using this action is not free
+            if($action == "wisdom.unknown"){
+                    $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
+                    $songs = $this->spotify('opera');
+                    $answer['music'] = $songs['playing'];
+                    if($intent == "next song") {
+                        $answer['music'] = $songs['next'];
+                    }
+            }
         } 
+
         return $answer;
     }
 
