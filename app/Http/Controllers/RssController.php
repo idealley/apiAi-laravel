@@ -282,9 +282,7 @@ class RssController extends Controller
                         $answer['music'] = $songs['next'];
                     }
             }
-        } 
-
-        dd($answer);
+        }
 
         return $answer;
     }
