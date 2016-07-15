@@ -229,7 +229,7 @@ dd($results);
         //if local -> query needs to be site:blick.ch
                         $query = $subject;
                         if($intent == "More info") {
-                            $offset += 1;
+                            ++$offset;
                         }
                         $market = 'en-US';
                         //let's consider for now that local news come from Blick.ch
@@ -258,7 +258,7 @@ dd($results);
 
         if($action == "play.music"){
                 if($intent == "next song") {
-                        $offset += 1;
+                        ++$offset;
                     }
                 if(!empty($subject)){
                     $songs = $this->spotify($subject, $offset);
