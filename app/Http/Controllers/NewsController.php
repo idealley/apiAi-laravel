@@ -190,7 +190,7 @@ dd($results);
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
         $news = isset($results['result']['parameters']['news']) ? $results['result']['parameters']['news'] : false;
         //API.AI Fulfillment data (News agent data sent back...)
-        $data = isset($results['result']['fulfillment']['data']['newsAgent']) ? $results['result']['fulfillment']['data']['newsAgent'] : null;
+        //$data = isset($results['result']['fulfillment']['data']['newsAgent']) ? $results['result']['fulfillment']['data']['newsAgent'] : null;
         //$title = isset($data['title']) ? $data['title'] : null;
         //$image = isset($data['image']) ? $data['image'] : null;
         //$webSource = isset($data['source']) ? $data['source'] : null;
@@ -199,7 +199,7 @@ dd($results);
         //$language = isset($data['languange']) ? $data['languange'] : null;
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
-        $offset = isset($data['offset']) ? $data['offset'] : 0; 
+        $offset = isset($results['result']['fulfillment']['data']['newsAgent']['offset']) ? $results['result']['fulfillment']['data']['newsAgent']['offset'] : 0; 
 
 
         if(empty($subject)){
@@ -310,6 +310,8 @@ dd($results);
 
         $news = $item['value'][0];
 
+
+
         //Getting the url without the bing redirect
         $url = $this->urlDecode($news['url']);
 
@@ -319,7 +321,11 @@ dd($results);
         $parsed['link'] = $url;
         //Call to Alchemy to get the full body and the emotions
         $results = $this->getEmotion($url);
-        $parsed['body'] = $results['body'];
+        if(!empty($results['body'])){
+            $parsed['body'] = $results['body'];
+        } else {
+            $parsed['body'] = $news['description'];
+        }
         $parsed['language'] = $results['language'];
         $parsed['emotion'] = $results['emotion'];
         $parsed['emoticon'] = $results['emoticon']; 
