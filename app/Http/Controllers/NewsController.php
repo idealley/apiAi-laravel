@@ -201,7 +201,6 @@ dd($results);
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
         $offset = isset($results['result']['fulfillment']['data']['newsAgent']['offset']) ? $results['result']['fulfillment']['data']['newsAgent']['offset'] : 0; 
 
-
         if(empty($subject)){
             $subject = $query;
         }
