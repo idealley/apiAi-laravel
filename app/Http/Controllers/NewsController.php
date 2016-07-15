@@ -32,7 +32,7 @@ class NewsController extends Controller
             }
         } else {
             $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
-            $displayText = $answer['speech']."Title: ".$answer['music']['title'];
+            $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
         }
 
@@ -175,11 +175,10 @@ dd($results);
     * @return array
     */
     public function answer($results){
-
         //API.AI Fulfillment
         $speech = isset($results['result']['fulfillment']['speech']) ? $results['result']['fulfillment']['speech'] : '';
         $newsSource = isset($results['result']['fulfillment']['source']) ? $results['result']['fulfillment']['source'] : '';
-        $displayText = isset($results['result']['fulfillment']['displayText']) ? $results['result']['fulfillment']['displayText'] : '';;
+        //$displayText = isset($results['result']['fulfillment']['displayText']) ? $results['result']['fulfillment']['displayText'] : '';;
         //API.AI Result 
         $query = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
         $action = isset($results['result']['action']) ? $results['result']['action'] : false;
@@ -200,7 +199,6 @@ dd($results);
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
         $offset = isset($results['result']['fulfillment']['data']['newsAgent']['offset']) ? $results['result']['fulfillment']['data']['newsAgent']['offset'] : 0; 
-
         if(empty($subject)){
             $subject = $query;
         }
@@ -227,6 +225,9 @@ dd($results);
         if($action == "show.news"){
         //if local -> query needs to be site:blick.ch
                         $query = $subject;
+                        if(empty($subject)){
+                            $query = $adjective;
+                        }
                         if($intent == "More info") {
                             ++$offset;
                         }
@@ -237,16 +238,16 @@ dd($results);
                             $query = 'site:blick.ch+'.$subject;
                         }
 
-                        if($adjective == 'swiss'){
+                        if($adjective == 'swiss' || $adjective == 'Swiss'){
                             $market = 'de-CH';
                         }
-                        $response = $this->getNews($subject, $offset, $market);
+                        $response = $this->getNews($query, $offset, $market);
                         $news = json_decode($response->getContent(), true);
                         $answer['news'] = $news['item'];
                         //Adding speech for the webapp. $displayText is used because $speech "enriched"
                         //to display more info (emoticons, urls, etc) in skype and other bots as far 
                         //as API.AI uses this key to answer the user.
-                        $answer['speech'] = $displayText;
+                        $answer['speech'] = $speech;
                         $answer['offset'] = $news['offset'];
         }
 
@@ -281,7 +282,6 @@ dd($results);
                         $answer['music'] = $songs['next'];
                     }
             }
-
         return $answer;
     }
 
