@@ -1,0 +1,384 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use SimplePie;
+
+use App\Http\Requests;
+use Illuminate\Support\Facades\Response;
+use League\OAuth2\Client\Provider\GenericProvider;
+
+use GuzzleHttp\Client;
+
+class NewsController extends Controller
+{
+    public function webhook(Request $request){
+        //Getting the POST request from API.AI and decoding it
+        $results = json_decode($request->getContent(), true);
+        
+        $answer = $this->answer($results);
+
+        if($answer['music'] === null){
+            //if necessary, we can truncate the length of the body here
+            $body = $answer['news']['body'];
+            $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+            $displayText = null;
+            $source = $answer['news']['source'];
+
+            if($answer['news']['emotion'] !== null){
+                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." (".$answer['news']['emotion'].")\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                $displayText = $answer['speech'].". Watson found that this article main emotion is: ".$answer['news']['emotion'];
+            }
+        } else {
+            $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
+            $displayText = $answer['speech']."Title: ".$answer['music']['title'];
+            $source = "Spotify";
+        }
+
+        if(isset($answer['news']['title']) || $answer['music']){
+                $speech = $response;
+                $text = $displayText;
+        } else {
+                $speech = $answer['speech'];
+                $text = $answer['speech'];
+            }
+
+        //this is a valid response for API.AI 
+        return Response::json([
+                    'speech'   => $speech,
+                    'displayText' => $text,
+                    'data' => ['newsAgent' => $answer],
+                    'contextOut' => [],
+                    'source' => $source
+            ], 200);
+
+    }
+
+
+    public function apiAi(Request $request){
+
+        $results = $this->sendRequest($request);
+dd($results);
+        $answer = $this->webappReply($results);
+
+        //Here we format the response for the JS on the frontend
+        return Response::json([
+                'news'  => isset($answer['news']) ? $answer['news'] : null,
+                'music' => isset($answer['music']) ? $answer['music'] : null,
+                'speech'   => $answer['speech'],
+                'action' => $answer['action'],
+                'subject' => $answer['subject'],
+                'contexts' => $answer['contexts'],
+                'intent' => $answer['intent'],
+                'adjective' => $answer['adjective']
+            ], 200);
+    }
+
+    public function spotify($query, $offset = 0){
+        $session = new \SpotifyWebAPI\Session(env('SPOTIFY_CLIENT_ID'), env('SPOTIFY_CLIENT_SECRET'), url('spotify'));
+        $api = new \SpotifyWebAPI\SpotifyWebAPI();
+
+        $session->requestCredentialsToken();
+        $accessToken = $session->getAccessToken(); // We're good to go!
+
+        // Set the code on the API wrapper
+        $api->setAccessToken($accessToken);
+        //search for songs
+        $tracks = $api->search($query, 'track', array(
+            'offset' => $offset,
+            'limit' => 1
+        ));
+        
+        $song['url'] = $tracks->tracks->items[0]->preview_url;
+        $song['title'] = $tracks->tracks->items[0]->name;
+        $song['full'] =  $tracks->tracks->items[0]->external_urls->spotify;
+        $song['image'] = $tracks->tracks->items[0]->album->images[0]->url;
+
+        return $song;
+
+    }
+
+    /**
+    * Send the Request to API.AI
+    * @param object $request
+    * @return array
+    */
+    public function sendRequest($request){
+        $apiai_key = env('API_AI_ACCESS_TOKEN');
+        $apiai_subscription_key = env('API_AI_DEV_TOKEN');
+        
+        $query = $request->input('query');
+        
+        $client = new Client();
+
+        $send = ['headers' => [
+                    'Content-Type' => 'application/json;charset=utf-8', 
+                    'Authorization' => 'Bearer '.$apiai_key
+                    ],
+                'body' => json_encode([                
+                    'query' => $query, 
+                    'lang' => 'en'
+                    ])
+                ];            
+
+        $response = $client->post('https://api.api.ai/v1/query?v=20150910', $send);
+
+        return json_decode($response->getBody(),true);
+
+    }
+
+    public function getEmotion($url){
+
+        $client = new Client();
+        $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned&outputMode=json');
+        
+        $item = json_decode($response->getBody(), true);
+
+        $news['language'] = $item['language'];
+        $news['body'] = $item['text'];
+        $news['emotion'] = null;
+        $news['emoticon'] = null;
+
+        if($item['status'] == 'OK'){
+            //Emoticons for sykpe
+            $anger = ":@";
+            $happy = "(happy)";
+            $sad = ";(";
+            $disgust = "(puke)";
+            $fear = ":S";
+
+            //Finding the predominant emotion
+            arsort($item['docEmotions']);
+            reset($item['docEmotions']);
+            $emotion = key($item['docEmotions']);
+
+            //Matching the emoticon with the emotion
+            if ($emotion == "anger"){$emoticon = $anger;}
+            if ($emotion == "disgust"){$emoticon = $disgust;}
+            if ($emotion == "fear"){$emoticon = $fear;}
+            if ($emotion == "joy"){$emoticon = $happy;}
+            if ($emotion == "sadness"){$emoticon = $sad;}
+
+            $news['emotion'] = $emotion;
+            $news['emoticon'] = $emoticon;
+
+        }
+        return $news; 
+        
+    }
+
+    /**
+    * Parse the results received from API.AI and parse it with some logic to
+    * get some news or music to display
+    * @param array $results
+    * @return array
+    */
+    public function answer($results){
+
+        //API.AI Fulfillment
+        $speech = isset($results['result']['fulfillment']['speech']) ? $results['result']['fulfillment']['speech'] : '';
+        $newsSource = isset($results['result']['fulfillment']['source']) ? $results['result']['fulfillment']['source'] : '';
+        $displayText = isset($results['result']['fulfillment']['displayText']) ? $results['result']['fulfillment']['displayText'] : '';;
+        //API.AI Result 
+        $query = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
+        $action = isset($results['result']['action']) ? $results['result']['action'] : false;
+        $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;;
+        $apiAiSource = isset($results['result']['source']) ? $results['result']['source'] : false;
+        //API.AI Result params
+        $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
+        $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
+        $news = isset($results['result']['parameters']['news']) ? $results['result']['parameters']['news'] : false;
+        //API.AI Fulfillment data (News agent data sent back...)
+        $data = isset($results['result']['fulfillment']['data']['newsAgent']) ? $results['result']['fulfillment']['data']['newsAgent'] : null;
+        //$title = isset($data['title']) ? $data['title'] : null;
+        //$image = isset($data['image']) ? $data['image'] : null;
+        //$webSource = isset($data['source']) ? $data['source'] : null;
+        //$link = isset($data['link']) ? $data['link'] : null;
+        //$body = isset($data['body']) ? $data['body'] : null;
+        //$language = isset($data['languange']) ? $data['languange'] : null;
+        //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
+        //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
+        $offset = isset($data['offset']) ? $data['offset'] : 0; 
+
+
+        if(empty($subject)){
+            $subject = $query;
+        }
+
+        //Response defaults
+        $answer['adjective'] = $adjective;
+        $answer['subject'] = $subject;
+        $answer['intent'] = $intent;
+        $answer['action'] = $action;
+        $answer['news'] = null;
+        $answer['music'] = null;
+
+        //$answer['resolvedQuery'] = $resolvedQuery;
+        
+        //start formating the response to the app
+        $answer['speech'] = $speech;
+        // speech response for webhooks call
+
+        if(!$action && $speech == '' && !$subject){
+            $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
+            $answer['news'] = 'Nothing is happening right now. Check later!';
+        } 
+  
+        if($action == "show.news"){
+        //if local -> query needs to be site:blick.ch
+                        $query = $subject;
+                        if($intent == "More info") {
+                            $offset += 1;
+                        }
+                        $market = 'en-US';
+                        //let's consider for now that local news come from Blick.ch
+                        if($adjective == 'local'){
+                            $market = 'de-CH';
+                            $query = 'site:blick.ch+'.$subject;
+                        }
+
+                        if($adjective == 'swiss'){
+                            $market = 'de-CH';
+                        }
+                        $response = $this->getNews($subject, $offset, $market);
+                        $news = json_decode($response->getContent(), true);
+                        $answer['news'] = $news['item'];
+                        //Adding speech for the webapp. $displayText is used because $speech "enriched"
+                        //to display more info (emoticons, urls, etc) in skype and other bots as far 
+                        //as API.AI uses this key to answer the user.
+                        $answer['speech'] = $displayText;
+                        $answer['offset'] = $news['offset'];
+        }
+
+        //the domain using this action is not free
+        if($action == "news.search"){
+                //
+        }
+
+        if($action == "play.music"){
+                if($intent == "next song") {
+                        $offset += 1;
+                    }
+                if(!empty($subject)){
+                    $songs = $this->spotify($subject, $offset);
+                } elseif (!empty($adjective)) {
+                    $songs = $this->spotify($adjective, $offset);
+                } else {
+                    $songs = $this->spotify($resolvedQuery, $offset);
+                }                 
+                if($songs != null){ 
+                    $answer['music'] = $songs;
+                }    
+                $answer['offset'] = $offset;
+        }
+        
+        //the domain using this action is not free
+        if($action == "wisdom.unknown"){
+                    $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
+                    $songs = $this->spotify('opera');
+                    $answer['music'] = $songs['playing'];
+                    if($intent == "next song") {
+                        $answer['music'] = $songs['next'];
+                    }
+            }
+
+        return $answer;
+    }
+
+    public function truncate($string, $length = 300, $append = "..."){
+        $string = trim($string);
+
+        if(strlen($string) > $length) {
+            $string = wordwrap($string, $length);
+            $string = explode("\n", $string, 2);
+            $string = $string[0]. $append;
+        }
+
+        return $string;
+
+    }
+
+
+    public function getNews($query, $offset = 0, $market = 'en-US'){
+        //all available markets es-AR,en-AU,de-AT,nl-BE,fr-BE,pt-BR,en-CA,fr-CA,es-CL,da-DK,fi-FI,fr-FR,de-DE,zh-HK,en-IN,en-ID,en-IE,it-IT,ja-JP,ko-KR,en-MY,es-MX,nl-NL,en-NZ,no-NO,zh-CN,pl-PL,pt-PT,en-PH,ru-RU,ar-SA,en-ZA,es-ES,sv-SE,fr-CH,de-CH,zh-TW,tr-TR,en-GB,en-US,es-US
+        $client = new Client();
+        $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
+        //$response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
+
+        $item = json_decode($response->getBody(), true);
+
+        $news = $item['value'][0];
+
+        //Getting the url without the bing redirect
+        $url = $this->urlDecode($news['url']);
+
+        $parsed['title'] = $news['name'];
+        $parsed['image'] = isset($news['image']['thumbnail']['contentUrl']) ? $news['image']['thumbnail']['contentUrl'] : null;
+        $parsed['source'] = $news['provider'][0]['name']; 
+        $parsed['link'] = $url;
+        //Call to Alchemy to get the full body and the emotions
+        $results = $this->getEmotion($url);
+        $parsed['body'] = $results['body'];
+        $parsed['language'] = $results['language'];
+        $parsed['emotion'] = $results['emotion'];
+        $parsed['emoticon'] = $results['emoticon']; 
+
+        return Response::json([
+                'item'  => $parsed,
+                'offset' => $offset
+            ], 200);
+    }
+
+    /**
+    * Decode Bing url
+    */
+    public function urlDecode($url){
+        $url = rawurldecode($url);
+        $parts = parse_url($url);
+        parse_str($parts['query'], $query);
+        return $query['r'];
+    }
+
+    public function skypeChat(Request $request){
+
+        $redirectUrl = urlencode('https://news-agent.idealley.ch/skype');
+
+        $client = new Client();
+
+        $response = $client->request('POST','https://login.microsoftonline.com/common/oauth2/v2.0/token', ["form_params" => [
+                "client_id" => env('MICROSOFT_APP_ID'),
+                "client_secret" => env('MICROSOFT_APP_SECRET'),
+                'grant_type' => 'client_credentials',
+                'scope' => 'https://graph.microsoft.com/.default'
+            ]]);
+
+        $token = json_decode($response->getBody(), true);
+        $accessToken = $token['access_token'];
+        //tanushechka.krasotushechka
+        $username = 'samuel.pouyt';
+        //$username = "tanushechka.krasotushechka";
+
+        $send = [
+            'headers' => 
+                    [
+                    'Content-Type' => 'application/json;charset=utf-8', 
+                    'Authorization' => 'Bearer '.$accessToken
+                    ],
+             'json' => [                
+                    'message' => [
+                        'content' => "Hi! (wave)\nHere are the latest news that I thought could interest you: 
+                        \n (bell) First news
+                        \n (bell) Second news
+                        \n (bell) Third news"
+                        ]
+                    ]  
+                ];  
+        $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:'.$username.'/activities', $send);
+ 
+        return "The message has been sent"; 
+
+
+    }
+
+}

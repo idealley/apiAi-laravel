@@ -15,14 +15,20 @@ Route::get('/', function () {
     return view('home');
 });
 
-Route::get('api/rss/{rssFeed}', 'RssController@feed');
-Route::post('api/api-ai', 'RssController@apiAi');
-Route::post('api/webhook', 'RssController@webhook');
-Route::get('api/webhook', 'RssController@webhook');
-Route::get('api/api-ai', 'RssController@apiAi');
-Route::get('api/news/{query}', 'RssController@getNews');
-Route::post('api/emotion', 'RssController@getEmotion');
-Route::get('user/{id}', 'UserController@show');
-Route::get('spotify', 'RssController@spotify');
-Route::post('test', 'RssController@sendRequest');
-Route::get('skype', 'RssController@skypeChat');
+
+//Route::get('news-search/{query}/{?offset}/{?market}', 'NewsController@getNews');
+
+//Route::get('api/rss/{rssFeed}', 'RssController@feed');
+Route::post('api/api-ai', 'NewsController@apiAi');
+//Route::get('api/api-ai', 'NewsController@apiAi');
+Route::post('api/webhook', 'NewsController@webhook');
+Route::get('api/webhook', 'NewsController@webhook');
+Route::get('skype', 'NewsController@skypeChat');
+
+//Route::post('api/emotion', 'RssController@getEmotion');
+//Route::get('user/{id}', 'UserController@show');
+//Route::get('spotify/{query}', 'NewsController@spotify');
+//Route::post('test', 'RssController@sendRequest');
+
+//Route::get('news-search/{query}', 'NewsController@getNews');
+
