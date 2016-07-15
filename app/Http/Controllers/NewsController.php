@@ -59,23 +59,26 @@ class NewsController extends Controller
     public function apiAi(Request $request){
 
         $results = $this->sendRequest($request);
-dd($results);
-        $answer = $this->webappReply($results);
+        if(isset($results['result']['fulfillment']['data'])){
+            $result = $results['result']['fulfillment']['data']['newsAgent'];
+        } else {
+            $result = $results['result']['fulfillment'];
+            $result['action'] = $results['result']['action'];
+        }
 
         //Here we format the response for the JS on the frontend
         return Response::json([
-                'news'  => isset($answer['news']) ? $answer['news'] : null,
-                'music' => isset($answer['music']) ? $answer['music'] : null,
-                'speech'   => $answer['speech'],
-                'action' => $answer['action'],
-                'subject' => $answer['subject'],
-                'contexts' => $answer['contexts'],
-                'intent' => $answer['intent'],
-                'adjective' => $answer['adjective']
+                'news'  => isset($result['news']) ? $result['news'] : null,
+                'music' => isset($result['music']) ? $result['music'] : null,
+                'speech'   => $result['speech'],
+                'action' => $result['action'],
+                'subject' => isset($result['subject']) ? $result['subject'] : null,
+                'intent' => isset($result['intent']) ? $result['intent'] : null,
+                'adjective' => isset($result['adjective']) ? $result['adjective'] : null
             ], 200);
     }
 
-    public function spotify($query, $offset = 0){
+    public function spotify($query, $offset){
         $session = new \SpotifyWebAPI\Session(env('SPOTIFY_CLIENT_ID'), env('SPOTIFY_CLIENT_SECRET'), url('spotify'));
         $api = new \SpotifyWebAPI\SpotifyWebAPI();
 
@@ -269,7 +272,9 @@ dd($results);
                 }                 
                 if($songs != null){ 
                     $answer['music'] = $songs;
-                }    
+                } else {
+                    $answer['music'] = $this->spotify("Opera", $offset);
+                }   
                 $answer['offset'] = $offset;
         }
         
@@ -299,7 +304,7 @@ dd($results);
     }
 
 
-    public function getNews($query, $offset = 0, $market = 'en-US'){
+    public function getNews($query, $offset, $market = 'en-US'){
         //all available markets es-AR,en-AU,de-AT,nl-BE,fr-BE,pt-BR,en-CA,fr-CA,es-CL,da-DK,fi-FI,fr-FR,de-DE,zh-HK,en-IN,en-ID,en-IE,it-IT,ja-JP,ko-KR,en-MY,es-MX,nl-NL,en-NZ,no-NO,zh-CN,pl-PL,pt-PT,en-PH,ru-RU,ar-SA,en-ZA,es-ES,sv-SE,fr-CH,de-CH,zh-TW,tr-TR,en-GB,en-US,es-US
         $client = new Client();
         $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);

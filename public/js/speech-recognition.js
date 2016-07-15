@@ -1,4 +1,5 @@
 var recognition;
+var play = true;
 
 function startRecognition() {
 	recognition = new webkitSpeechRecognition();
@@ -45,13 +46,35 @@ function updateRec() {
 	$("#rec").text(recognition ? "Stop" : "Speak");
 }
 
+
+function togglePlay(){
+	if(play === null) {
+		responsiveVoice.resume();
+		play = true;
+	} else {
+		responsiveVoice.pause();
+		play = null;
+	}
+}
+
 $("#query").keypress(function(event) {
 	if (event.which == 13) {
 		event.preventDefault();
 		send();
+		if(responsiveVoice.isPlaying()){
+			responsiveVoice.cancel();
+		}
 	}
 });
 
 $("#rec").click(function(event) {
 	switchRecognition();
+	if(responsiveVoice.isPlaying()){
+		responsiveVoice.cancel();
+	}
+});
+
+$('#toggle_play').click(function(){
+	togglePlay();
+	console.log(play);
 });

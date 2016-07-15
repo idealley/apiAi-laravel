@@ -7,38 +7,76 @@ function send(){
             'query': text
         },
         function(item) {
-            console.log('>>>>>>> the item object (bellow):');
+            console.log('>>>>>>>>>> the item object (bellow):');
             console.log(item);
 
-            if(item.action == "smalltalk.greetings" || item.action == "news.search" || item.action == "wisdom.unknown"){
+            if(item.action != "play.music" || item.action != "show.news"){  
+                console.log('>>>>>>>>>> Default');
                 responsiveVoice.speak(item.speech, 'UK English Female');
             }
+
+            var language = '';
+            var emotion = '';
+
+            if(item.news != null){
+                language = item.news.language;
+                emotion = item.news.emotion;
+            }
             
-            //If no emotion it is German... Just because Watson does not understand yet German. No hint here.
-            if(!item.news.emotion && item.action != "smalltalk.greetings"){
-                responsiveVoice.speak('Here is what I found', 'UK English Female', {onend: speakGermanNews});
+            if(language == "german" && item.action == "show.news"){
+                console.log('>>>>>>>>>> Show News (German)');
+                responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakGermanNews});
             }
 
-            if(item.news.emotion){
-                responsiveVoice.speak("According to Watson, the main emotion of this article is:" + item.news.emotion + ': ' + item.news.title + ' ' +item.news.body, 'UK English Female');
+            if(language == "english" && item.action == "show.news"){
+                console.log('>>>>>>>>>> Show News (English)');
+                responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakEnglishNews});
             }
 
             if(item.action == "play.music"){
+                console.log('>>>>>>>>>> Play Music');
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: playMusic});
             }
             
             function speakGermanNews(){ //no need to pass the object...
                 if(item.news.title){
-                    responsiveVoice.speak(item.news.title + item.news.body, "Deutsch Female");
-                } else {
-                    if(item.action !== "smalltalk.greetings"){           
+                    responsiveVoice.speak(item.news.title, "Deutsch Female", {onend: germanNewsBody});
+                } else {       
                         responsiveVoice.speak("Sorry, No news found");
                     }
+            }
+            
+            function germanNewsBody(){
+                if(item.news.body){
+                    responsiveVoice.speak(item.news.body, "Deutsch Female");              
+                    responsiveVoice.speak(item.news.source, 'Deutsch Female');
+                } else {       
+                        responsiveVoice.speak("Nothing else to read");
+                }
+
+            }
+
+            function speakEnglishNews(){
+                if(item.news.title){
+                    responsiveVoice.speak(item.news.title, 'UK English Female', {onend: englishNewsBody});
+                } else {       
+                        responsiveVoice.speak("Sorry, No news found");
                 }
             }
-            var emotion = '';
-            if(item.news.emotion){
-                emotion = '<h4>Watson has found that this news reflects the following emotion: <b>'+item.news.emotion+'</b></h4>'
+
+            function englishNewsBody(){
+                if(emotion){
+                    responsiveVoice.speak("Watson found that the proeminent emotion is:" + item.news.emotion, 'UK English Female');
+                    responsiveVoice.speak(item.news.body, 'UK English Female');
+                    responsiveVoice.speak(item.news.source, 'UK English Female');
+                } else {       
+                    responsiveVoice.speak(item.news.body, 'UK English Female');             
+                    responsiveVoice.speak(item.news.source, 'UK English Female');
+                }
+            }
+
+            if(emotion){
+                emotion = '<h4>Watson has found that this news reflects the following emotion: <b>'+emotion+'</b></h4>'
             }
 
             if(item.action == "show.news") {
@@ -50,13 +88,13 @@ function send(){
                                         item.news.title
                                         +'</h3><p>'+
                                         item.news.body
-                                        +'</p></div>';
+                                        +'</p><p>Source: '+item.news.source+'</p></div>';
                                     
                 if(!item.news.link) {
                     var action = '</div></div>';
                 }
                 var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
-                                        item.news.permalink
+                                        item.news.link
                                         +'"><span class="icon">check</span>read more...</a></div></div></div> ';
                           
                 var news = image + content + action;
@@ -64,19 +102,32 @@ function send(){
                 $('#news').html(news);
             }
 
-            if(item.action == "news.search"){
+            if(item.action != "show.news"){
                 var content =   '<div class="card-inner"><p>'+
                                         item.speech
                                         +'</p></div>';
                 $('#news').html(content);
             }
-            function playMusic(){
-                if(item.action == "play.music" || item.action == "wisdom.unknown"){
-                    var player =   '<div class="card-main"><div style="text-align:center;" class="card-inner"><audio controls autoplay>'+
-                                    '<source src="'+item.music+'" type="audio/mpeg">'+
-                                    '</audio></div></div>';
+            function playMusic(){       
+
+                    var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
+                                        item.music.image
+                                        +'" style="width: 100%;"></div>';
+
+                    var content =   '<div style="text-align:center;" class="card-inner"><audio controls autoplay>'+
+                                        '<source src="'+item.music.url+'" type="audio/mpeg">'+
+                                        '</audio></div>';
+                                    
+                    if(!item.music.full) {
+                            var action = '</div></div>';
+                        }
+                        var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
+                                                item.news.full
+                                                +'"><span class="icon">check</span>Listent to the full song on Spotify</a></div></div></div> ';
+                          
+                var player = image + content + action;                                   
                     $('#news').html(player);
-                }
+                
             }
 
         }
