@@ -13,6 +13,7 @@ function startRecognition() {
 	    }
 	    setInput(text);
 		stopRecognition();
+		$('#spinner-wrapp').show();
 	};
 	recognition.onend = function() {
 		stopRecognition();
@@ -38,12 +39,13 @@ function switchRecognition() {
 }
 
 function setInput(text) {
+	$('#toFocus').addClass('control-focus')
 	$("#query").val(text);
 	send();
 }
 
 function updateRec() {
-	$("#rec").text(recognition ? "Stop" : "Speak");
+	$("#rec").text(recognition ? "mic_off" : "mic");
 }
 
 
@@ -61,6 +63,7 @@ $("#query").keypress(function(event) {
 	if (event.which == 13) {
 		event.preventDefault();
 		send();
+		$('#spinner-wrapp').show();
 		if(responsiveVoice.isPlaying()){
 			responsiveVoice.cancel();
 		}

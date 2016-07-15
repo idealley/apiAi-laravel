@@ -22,16 +22,10 @@
 		<script src="js/jquery.js"></script>
 		 <script src="../js/responsive-voice.js"></script>
 	</head>
-	<body class="page-brand">
-		<header class="header header-transparent header-waterfall ui-header">
-		<ul class="nav nav-list pull-left">
-			<li>
-				<a data-toggle="menu" href="#ui_menu">
-					<span class="icon icon-lg">menu</span>
-				</a>
-			</li>
-		</ul>
-		<a class="header-logo margin-left-no" href="index.html">News Agent</a>
+	<body class="page-brand page-red">
+		<header class="header header-transparent header-waterfall header-red ui-header">
+
+		<a class="header-logo margin-left-no" href="/">News Agent</a>
 
 	</header>
 		<nav aria-hidden="true" class="menu" id="ui_menu" tabindex="-1">
@@ -66,12 +60,13 @@
 										<div class="grid">
 											<div class="grid__item">
 										    	<div>
-										        	<button class="btn btn-brand" id="rec">Speak</button>
+										        	<a class="fbtn fbtn-lg fbtn-brand waves-attach waves-circle waves-light icon" id="rec" style="font-size:2.5em;">mic
+										        	</a>
 										    	</div>
 											</div>
 											<div class="grid__item" style="margin: 1em 0;">
 										    	<div>
-											        <div class="form-group form-group-label form-group-brand">
+											        <div id="toFocus" class="form-group form-group-label form-group-brand">
 														<label class="floating-label" for="ui_floating_label_example_brand">Or, ask with your keyboard</label>
 														<input class="form-control" id="query" type="text">
 														<div class="form-help">
@@ -110,11 +105,18 @@
 	</footer>
 	<div class="fbtn-container">
 		<div class="fbtn-inner">
-			<a id="toggle_play" class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle waves-light" data-toggle="dropdown">
+			<a id="toggle_play" style="display:none;" class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle waves-light" data-toggle="dropdown">
 				<span class="fbtn-text fbtn-text-left">Play or Pause the voice reading the news!</span>
 				<span class="fbtn-ori icon">pause</span>
 				<span class="fbtn-sub icon">play_arrow</span>
 			</a>
+		</div>
+	</div>
+	<div id="spinner-wrapp" style="display:none;">
+		<div id="spinner">
+			<svg class="spinner" width="65px" height="65px" viewBox="0 0 66 66" xmlns="http://www.w3.org/2000/svg">
+		   		<circle class="path" fill="none" stroke-width="6" stroke-linecap="round" cx="33" cy="33" r="30"></circle>
+			</svg>	
 		</div>
 	</div>
 

@@ -1,6 +1,5 @@
 function send(){
     var text = $("#query").val();
-
     $.post(
         'api/api-ai',
         {
@@ -10,8 +9,10 @@ function send(){
             console.log('>>>>>>>>>> the item object (bellow):');
             console.log(item);
 
+            $('#spinner-wrapp').hide();
             if(item.action != "play.music" || item.action != "show.news"){  
                 console.log('>>>>>>>>>> Default');
+                $('#toggle_play').show();
                 responsiveVoice.speak(item.speech, 'UK English Female');
             }
 
@@ -25,16 +26,19 @@ function send(){
             
             if(language == "german" && item.action == "show.news"){
                 console.log('>>>>>>>>>> Show News (German)');
+                $('#toggle_play').show();
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakGermanNews});
             }
 
             if(language == "english" && item.action == "show.news"){
                 console.log('>>>>>>>>>> Show News (English)');
+                $('#toggle_play').show();
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: speakEnglishNews});
             }
 
             if(item.action == "play.music"){
                 console.log('>>>>>>>>>> Play Music');
+                $('#toggle_play').hide();
                 responsiveVoice.speak(item.speech, 'UK English Female', {onend: playMusic});
             }
             
@@ -95,7 +99,7 @@ function send(){
                 }
                 var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
                                         item.news.link
-                                        +'"><span class="icon">check</span>read more...</a></div></div></div> ';
+                                        +'"><span class="icon">link</span>read more...</a></div></div></div> ';
                           
                 var news = image + content + action;
 
@@ -123,7 +127,7 @@ function send(){
                         }
                         var action =    '<div class="card-action"><a target="_blank" class="btn btn-flat waves-attach waves-effect" href="'+
                                                 item.music.full
-                                                +'"><span class="icon">check</span>Listent to the full song on Spotify</a></div></div></div> ';
+                                                +'"><span class="icon">link</span>Listent to the full song on Spotify</a></div></div></div> ';
                           
                 var player = image + content + action;                                   
                     $('#news').html(player);

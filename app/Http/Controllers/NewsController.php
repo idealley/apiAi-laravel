@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Response;
 use League\OAuth2\Client\Provider\GenericProvider;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Psr7;
+use GuzzleHttp\Exception\RequestException;
+use GuzzleHttp\Exception\ConnectException;
 
 class NewsController extends Controller
 {
@@ -63,7 +66,7 @@ class NewsController extends Controller
             $result = $results['result']['fulfillment']['data']['newsAgent'];
         } else {
             $result = $results['result']['fulfillment'];
-            $result['action'] = $results['result']['action'];
+            $result['action'] = isset($results['result']['action']) ? $results['result']['action'] : null;
         }
 
         //Here we format the response for the JS on the frontend
@@ -123,12 +126,11 @@ class NewsController extends Controller
                     'query' => $query, 
                     'lang' => 'en'
                     ])
-                ];            
+                ];  
 
         $response = $client->post('https://api.api.ai/v1/query?v=20150910', $send);
 
         return json_decode($response->getBody(),true);
-
     }
 
     public function getEmotion($url){
