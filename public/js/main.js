@@ -121,8 +121,8 @@ function send(){
                     if(!item.music.full) {
                             var action = '</div></div>';
                         }
-                        var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
-                                                item.news.full
+                        var action =    '<div class="card-action"><a target="_blank" class="btn btn-flat waves-attach waves-effect" href="'+
+                                                item.music.full
                                                 +'"><span class="icon">check</span>Listent to the full song on Spotify</a></div></div></div> ';
                           
                 var player = image + content + action;                                   
