@@ -20,7 +20,7 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        Log::debug($results);
+        //Log::debug($results);
         
         $answer = $this->answer($results);
 
@@ -39,6 +39,7 @@ class NewsController extends Controller
             $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
+            $context = '{"name":"music","lifespan":5, "parameters":{"offset":"'.$answer['offset].'"}}};
         }
 
         if(isset($answer['news']['title']) || $answer['music']){
@@ -54,7 +55,7 @@ class NewsController extends Controller
                     'speech'   => $speech,
                     'displayText' => $text,
                     'data' => ['newsAgent' => $answer],
-                    'contextOut' => [],
+                    'contextOut' => [$context],
                     'source' => $source
             ], 200);
 
