@@ -20,8 +20,8 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        Log::debug("API call >>>>>>>>>>>>> ");
-        Log::debug($results);
+        //Log::debug("API call >>>>>>>>>>>>> ");
+        //Log::debug($results);
         
         $answer = $this->answer($results);
 
@@ -36,7 +36,7 @@ class NewsController extends Controller
             $displayText = null;
             $source = $answer['news']['source'];
             if($answer['intent'] == "More info") { 
-                $context = ['name' => 'next-subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
             }
 
             if($answer['news']['emotion'] !== null){
@@ -48,7 +48,7 @@ class NewsController extends Controller
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
-                $context = ['name' => 'next-song', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
             }
         }
 
@@ -219,7 +219,8 @@ class NewsController extends Controller
         //$language = isset($data['languange']) ? $data['languange'] : null;
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
-        $offset = isset($results['result']['fulfillment']['data']['newsAgent']['offset']) ? $results['result']['fulfillment']['data']['newsAgent']['offset'] : 0; 
+        $index = $this->getIndex('next', $results['result']['contexts']);
+        $offset = isset($results['result']['contexts'][$index]['parameters']['offset']) ? $results['result']['contexts'][$index]['parameters']['offset'] : 0; 
         if(empty($subject)){
             $subject = $query;
         }
@@ -323,6 +324,13 @@ class NewsController extends Controller
 
     }
 
+    public function getIndex($name, $array){
+    foreach($array as $key => $value){
+        if(is_array($value) && $value['name'] == $name)
+              return $key;
+    }
+    return null;
+    }
 
     public function getNews($query, $offset, $market = 'en-US'){
         //all available markets es-AR,en-AU,de-AT,nl-BE,fr-BE,pt-BR,en-CA,fr-CA,es-CL,da-DK,fi-FI,fr-FR,de-DE,zh-HK,en-IN,en-ID,en-IE,it-IT,ja-JP,ko-KR,en-MY,es-MX,nl-NL,en-NZ,no-NO,zh-CN,pl-PL,pt-PT,en-PH,ru-RU,ar-SA,en-ZA,es-ES,sv-SE,fr-CH,de-CH,zh-TW,tr-TR,en-GB,en-US,es-US
