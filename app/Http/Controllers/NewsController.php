@@ -40,7 +40,7 @@ class NewsController extends Controller
             }
 
             if($answer['news']['emotion'] !== null){
-                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." (".$answer['news']['emotion'].")\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 $displayText = $answer['speech'].". Watson found that this article main emotion is: ".$answer['news']['emotion'];
             }
         } else {
