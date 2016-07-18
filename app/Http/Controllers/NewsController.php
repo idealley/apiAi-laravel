@@ -20,11 +20,12 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        Log::debug("API call >>>>>>>>>>>>> ".$results);
+        //Log::debug("API call >>>>>>>>>>>>> ".$results);
         
         $answer = $this->answer($results);
+        dd($answer);
 
-        Log::debug("Processed >>>>>>>>>>>>> ".$results);
+        //Log::debug("Processed >>>>>>>>>>>>> ".$results);
 
         $context = '';
 
@@ -34,7 +35,9 @@ class NewsController extends Controller
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
-            $context = ['name' => 'subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+            if($answer['intent'] == "More info") { 
+                $context = ['name' => 'subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+            }
 
             if($answer['news']['emotion'] !== null){
                 $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." (".$answer['news']['emotion'].")\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
@@ -44,7 +47,9 @@ class NewsController extends Controller
             $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
-            $context = ['name' => 'music', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+            if($answer['intent'] == "next song") {    
+                $context = ['name' => 'music', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+            }
         }
 
         if(isset($answer['news']['title']) || $answer['music']){
@@ -56,7 +61,7 @@ class NewsController extends Controller
             }
 
 
-        Log::debug("to send >>>>>>>>>>>>> ".$context);
+       // Log::debug("to send >>>>>>>>>>>>> ".$context);
 
         //this is a valid response for API.AI 
         return Response::json([
