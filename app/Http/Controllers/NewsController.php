@@ -20,7 +20,8 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        //Log::debug("API call >>>>>>>>>>>>> ".$results);
+        Log::debug("API call >>>>>>>>>>>>> ");
+        Log::debug($results);
         
         $answer = $this->answer($results);
 
