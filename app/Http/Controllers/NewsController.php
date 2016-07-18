@@ -221,11 +221,11 @@ class NewsController extends Controller
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
         $indexSong = $this->getIndex('next-song', $results['result']['contexts']);
         $indexNews = $this->getIndex('next-news', $results['result']['contexts']);
-        $offsetSong = isset($results['result']['contexts'][$indexSong]['parameters']['offset']) ? $results['result']['contexts'][$indexSong]['parameters']['offset-song'] : 0;
+        $offsetSong = isset($results['result']['contexts'][$indexSong]['parameters']['offset-song']) ? $results['result']['contexts'][$indexSong]['parameters']['offset-song'] : 0;
         if(empty($offsetSong)){
             $offsetSong = 0;
         } 
-        $offsetNews = isset($results['result']['contexts'][$indexNews]['parameters']['offset']) ? $results['result']['contexts'][$indexNews]['parameters']['offset-news'] : 0;
+        $offsetNews = isset($results['result']['contexts'][$indexNews]['parameters']['offset-news']) ? $results['result']['contexts'][$indexNews]['parameters']['offset-news'] : 0;
         if(empty($offsetNews)){
             $offsetNews = 0;
         } 
