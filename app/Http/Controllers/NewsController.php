@@ -46,8 +46,6 @@ class NewsController extends Controller
                 $speech = $answer['speech'];
                 $text = $answer['speech'];
             }
-        
-        dd($answer);
 
         //this is a valid response for API.AI 
         return Response::json([
