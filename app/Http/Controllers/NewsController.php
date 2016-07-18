@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use SimplePie;
 
+use Log;
 use App\Http\Requests;
 use Illuminate\Support\Facades\Response;
 use League\OAuth2\Client\Provider\GenericProvider;
@@ -19,6 +20,7 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
+        Log::debug($results);
         
         $answer = $this->answer($results);
 
