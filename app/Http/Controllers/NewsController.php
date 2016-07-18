@@ -36,7 +36,7 @@ class NewsController extends Controller
             $displayText = null;
             $source = $answer['news']['source'];
             if($answer['intent'] == "More info") { 
-                $context = ['name' => 'next', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next-news', 'lifespan' => 5, 'parameters' => ['offset-news' => $answer['offset-news']]];
             }
 
             if($answer['news']['emotion'] !== null){
@@ -48,7 +48,7 @@ class NewsController extends Controller
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
-                $context = ['name' => 'next', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next-song', 'lifespan' => 5, 'parameters' => ['offset-song' => $answer['offset-song']]];
             }
         }
 
@@ -219,10 +219,15 @@ class NewsController extends Controller
         //$language = isset($data['languange']) ? $data['languange'] : null;
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
-        $index = $this->getIndex('next', $results['result']['contexts']);
-        $offset = isset($results['result']['contexts'][$index]['parameters']['offset']) ? $results['result']['contexts'][$index]['parameters']['offset'] : 0;
-        if(empty($offset)){
-            $offset = 0;
+        $indexSong = $this->getIndex('next-song', $results['result']['contexts']);
+        $indexNews = $this->getIndex('next-news', $results['result']['contexts']);
+        $offsetSong = isset($results['result']['contexts'][$indexSong]['parameters']['offset']) ? $results['result']['contexts'][$indexSong]['parameters']['offset-song'] : 0;
+        if(empty($offsetSong)){
+            $offsetSong = 0;
+        } 
+        $offsetNews = isset($results['result']['contexts'][$indexNews]['parameters']['offset']) ? $results['result']['contexts'][$indexNews]['parameters']['offset-news'] : 0;
+        if(empty($offsetNews)){
+            $offsetNews = 0;
         } 
         if(empty($subject)){
             $subject = $query;
@@ -232,7 +237,7 @@ class NewsController extends Controller
         $answer['subject'] = $subject;
         $answer['intent'] = $intent;
         $answer['action'] = $action;
-        $answer['offset.original'] = $offset;
+        //$answer['offset.original'] = $offset;
         $answer['news'] = null;
         $answer['music'] = null;
 
@@ -254,8 +259,8 @@ class NewsController extends Controller
                             $query = $adjective;
                         }
                         if($intent == "More info") {
-                            ++$offset;
-                            $answer['offset'] = $offset;
+                            ++$offsetNews;
+                            $answer['offset-news'] = $offsetNews;
                         }
                         $market = 'en-US';
                         //let's consider for now that local news come from Blick.ch
@@ -267,7 +272,7 @@ class NewsController extends Controller
                         if($adjective == 'swiss' || $adjective == 'Swiss'){
                             $market = 'de-CH';
                         }
-                        $response = $this->getNews($query, $offset, $market);
+                        $response = $this->getNews($query, $offsetNews, $market);
                         $news = json_decode($response->getContent(), true);
                         $answer['news'] = $news['item'];
                         //Adding speech for the webapp. $displayText is used because $speech "enriched"
@@ -283,20 +288,20 @@ class NewsController extends Controller
         
         if($action == "play.music"){
                 if($intent == "next song") {
-                        ++$offset;
-                        $answer['offset'] = $offset;    
+                        ++$offsetSong;
+                        $answer['offset-song'] = $offsetSong;    
                     }
                 if(!empty($subject)){
-                    $song = $this->spotify($subject, $offset);
+                    $song = $this->spotify($subject, $offsetSong);
                 } elseif (!empty($adjective)) {
-                    $song = $this->spotify($adjective, $offset);
+                    $song = $this->spotify($adjective, $offsetSong);
                 } else {
-                    $song = $this->spotify($resolvedQuery, $offset);
+                    $song = $this->spotify($resolvedQuery, $offsetSong);
                 }                 
                 if($song != null){ 
                     $answer['music'] = $song;
                 } else {
-                    $answer['music'] = $this->spotify("Opera", $offset);
+                    $answer['music'] = $this->spotify("Opera", $offsetSong);
                 }   
 
         }
@@ -304,8 +309,8 @@ class NewsController extends Controller
         //the domain using this action is not free
         if($action == "wisdom.unknown"){
                     if($intent == "next song") {
-                        ++$offset;
-                        $answer['offset'] = $offset;
+                        ++$offsetSong;
+                        $answer['offset-song'] = $offsetSong;
                     }
                     $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
                     $song = $this->spotify('opera', $offset);
