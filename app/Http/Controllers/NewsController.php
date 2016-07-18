@@ -20,9 +20,11 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        //Log::debug($results);
+        Log::debug("API call >>>>>>>>>>>>> ".$results);
         
         $answer = $this->answer($results);
+
+        Log::debug("Processed >>>>>>>>>>>>> ".$results);
 
         $context = '';
 
@@ -52,6 +54,9 @@ class NewsController extends Controller
                 $speech = $answer['speech'];
                 $text = $answer['speech'];
             }
+
+
+        Log::debug("to send >>>>>>>>>>>>> ".$context);
 
         //this is a valid response for API.AI 
         return Response::json([
