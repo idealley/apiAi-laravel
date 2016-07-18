@@ -23,7 +23,6 @@ class NewsController extends Controller
         //Log::debug("API call >>>>>>>>>>>>> ".$results);
         
         $answer = $this->answer($results);
-        dd($answer);
 
         //Log::debug("Processed >>>>>>>>>>>>> ".$results);
 
