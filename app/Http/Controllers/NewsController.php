@@ -46,6 +46,8 @@ class NewsController extends Controller
                 $speech = $answer['speech'];
                 $text = $answer['speech'];
             }
+        
+        dd($answer);
 
         //this is a valid response for API.AI 
         return Response::json([
@@ -235,6 +237,7 @@ class NewsController extends Controller
                         }
                         if($intent == "More info") {
                             ++$offset;
+                            $answer['offset'] = $offset;
                         }
                         $market = 'en-US';
                         //let's consider for now that local news come from Blick.ch
@@ -253,41 +256,42 @@ class NewsController extends Controller
                         //to display more info (emoticons, urls, etc) in skype and other bots as far 
                         //as API.AI uses this key to answer the user.
                         $answer['speech'] = $speech;
-                        $answer['offset'] = $news['offset'];
         }
 
         //the domain using this action is not free
         if($action == "news.search"){
                 //
         }
-
+        
         if($action == "play.music"){
                 if($intent == "next song") {
                         ++$offset;
+                        $answer['offset'] = $offset;    
                     }
                 if(!empty($subject)){
-                    $songs = $this->spotify($subject, $offset);
+                    $song = $this->spotify($subject, $offset);
                 } elseif (!empty($adjective)) {
-                    $songs = $this->spotify($adjective, $offset);
+                    $song = $this->spotify($adjective, $offset);
                 } else {
-                    $songs = $this->spotify($resolvedQuery, $offset);
+                    $song = $this->spotify($resolvedQuery, $offset);
                 }                 
-                if($songs != null){ 
-                    $answer['music'] = $songs;
+                if($song != null){ 
+                    $answer['music'] = $song;
                 } else {
                     $answer['music'] = $this->spotify("Opera", $offset);
                 }   
-                $answer['offset'] = $offset;
+
         }
         
         //the domain using this action is not free
         if($action == "wisdom.unknown"){
-                    $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
-                    $songs = $this->spotify('opera');
-                    $answer['music'] = $songs['playing'];
                     if($intent == "next song") {
-                        $answer['music'] = $songs['next'];
+                        ++$offset;
+                        $answer['offset'] = $offset;
                     }
+                    $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
+                    $song = $this->spotify('opera', $offset);
+                    $answer['music'] = $song;
             }
         return $answer;
     }
@@ -337,8 +341,7 @@ class NewsController extends Controller
         $parsed['emoticon'] = $results['emoticon']; 
 
         return Response::json([
-                'item'  => $parsed,
-                'offset' => $offset
+                'item'  => $parsed
             ], 200);
     }
 
