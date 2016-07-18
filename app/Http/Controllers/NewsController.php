@@ -32,7 +32,7 @@ class NewsController extends Controller
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
-            $context = '{"name":"More info","lifespan":5, "parameters":{"offset":"'.$answer['offset'].'"}}}';
+            $context = ['name' => 'subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
 
             if($answer['news']['emotion'] !== null){
                 $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." (".$answer['news']['emotion'].")\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
@@ -42,7 +42,7 @@ class NewsController extends Controller
             $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
-            $context = '{"name":"music","lifespan":5, "parameters":{"offset":"'.$answer['offset'].'"}}}';
+            $context = ['name' => 'music', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
         }
 
         if(isset($answer['news']['title']) || $answer['music']){
