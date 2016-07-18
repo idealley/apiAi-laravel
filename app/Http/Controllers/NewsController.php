@@ -20,8 +20,8 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        Log::debug("API call >>>>>>>>>>>>> ");
-        Log::debug($results);
+        //Log::debug("API call >>>>>>>>>>>>> ");
+        //Log::debug($results);
         
         $answer = $this->answer($results);
 
@@ -220,11 +220,13 @@ class NewsController extends Controller
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
         $index = $this->getIndex('next', $results['result']['contexts']);
-        $offset = isset($results['result']['contexts'][$index]['parameters']['offset']) ? $results['result']['contexts'][$index]['parameters']['offset'] : 0; 
+        $offset = isset($results['result']['contexts'][$index]['parameters']['offset']) ? $results['result']['contexts'][$index]['parameters']['offset'] : 0;
+        if(empty($offset)){
+            $offset = 0;
+        } 
         if(empty($subject)){
             $subject = $query;
         }
-
         //Response defaults
         $answer['adjective'] = $adjective;
         $answer['subject'] = $subject;
