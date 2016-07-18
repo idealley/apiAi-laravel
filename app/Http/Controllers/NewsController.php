@@ -35,7 +35,7 @@ class NewsController extends Controller
             $displayText = null;
             $source = $answer['news']['source'];
             if($answer['intent'] == "More info") { 
-                $context = ['name' => 'subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next-subject', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
             }
 
             if($answer['news']['emotion'] !== null){
@@ -47,7 +47,7 @@ class NewsController extends Controller
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
-                $context = ['name' => 'music', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
+                $context = ['name' => 'next-song', 'lifespan' => 5, 'parameters' => ['offset' => $answer['offset']]];
             }
         }
 
