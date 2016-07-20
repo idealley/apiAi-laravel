@@ -33,7 +33,7 @@ class NewsController extends Controller
             //if necessary, we can truncate the length of the body here with the function truncate()
             //use as follow: $body = $this->truncate($answer['news']['body'], 100)
             // 100 is the length you can put what ever, it is smart so it will only cut after full words
-            $body = $answer['news']['body'];
+            $body = $this->truncate($answer['news']['body'], 200);
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
