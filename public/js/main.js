@@ -62,6 +62,7 @@ function send(){
 
             function speakEnglishNews(){
                 if(item.news.title){
+                    responsiveVoice.speak("Watson found that the proeminent emotion is:" + item.news.emotion, 'UK English Female');
                     responsiveVoice.speak(item.news.title, 'UK English Female', {onend: englishNewsBody});
                 } else {       
                         responsiveVoice.speak("Sorry, No news found");
@@ -70,7 +71,6 @@ function send(){
 
             function englishNewsBody(){
                 if(emotion){
-                    responsiveVoice.speak("Watson found that the proeminent emotion is:" + item.news.emotion, 'UK English Female');
                     responsiveVoice.speak(item.news.body, 'UK English Female');
                     responsiveVoice.speak(item.news.source, 'UK English Female');
                 } else {       
