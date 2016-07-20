@@ -46,13 +46,13 @@ class NewsController extends Controller
                 | For demo purposes uncomment the bellow line to remove emoticons from the response
                 | To remove the comment remove // from the begining of the line
                 */
-                //$response = $answer['speech']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 
                 /**
                 | For demo purposes comment the bellow line to remove emoticons from the response
                 | To comment add // at the begining of the line
                 */
-                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                //$response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 $displayText = $answer['speech'].". Watson found that this article main emotion is: ".$answer['news']['emotion'];
             }
         } else {
