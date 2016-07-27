@@ -20,8 +20,8 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        Log::debug("API call >>>>>>>>>>>>> ");
-        Log::debug($results);
+        //Log::debug("API call >>>>>>>>>>>>> ");
+        //Log::debug($results);
         
         $answer = $this->answer($results);
 
@@ -46,17 +46,17 @@ class NewsController extends Controller
                 | For demo purposes uncomment the bellow line to remove emoticons from the response
                 | To remove the comment remove // from the begining of the line
                 */
-                $response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                $response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 
                 /**
                 | For demo purposes comment the bellow line to remove emoticons from the response
                 | To comment add // at the begining of the line
                 */
                 //$response = $answer['speech']."\n\n Watson found that this article main emotion is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
-                $displayText = $answer['speech'].". Watson found that this article main emotion is: ".$answer['news']['emotion'];
+                $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
             }
         } else {
-            $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here:".$answer['music']['full'];
+            $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
             $displayText = $answer['speech']." Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
@@ -355,7 +355,7 @@ class NewsController extends Controller
     public function getNews($query, $offset, $market = 'en-US'){
         //all available markets es-AR,en-AU,de-AT,nl-BE,fr-BE,pt-BR,en-CA,fr-CA,es-CL,da-DK,fi-FI,fr-FR,de-DE,zh-HK,en-IN,en-ID,en-IE,it-IT,ja-JP,ko-KR,en-MY,es-MX,nl-NL,en-NZ,no-NO,zh-CN,pl-PL,pt-PT,en-PH,ru-RU,ar-SA,en-ZA,es-ES,sv-SE,fr-CH,de-CH,zh-TW,tr-TR,en-GB,en-US,es-US
         $client = new Client();
-        $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
+        $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=true', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
         //$response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
 
         $item = json_decode($response->getBody(), true);
@@ -368,13 +368,17 @@ class NewsController extends Controller
         $url = $this->urlDecode($news['url']);
 
         $parsed['title'] = $news['name'];
-        $parsed['image'] = isset($news['image']['thumbnail']['contentUrl']) ? $news['image']['thumbnail']['contentUrl'] : null;
+        if(isset($news['image']['contentUrl'])){
+            $parsed['image'] = $news['image']['contentUrl'];         
+        } else {
+            $parsed['image'] = isset($news['image']['thumbnail']['contentUrl']) ? $news['image']['thumbnail']['contentUrl'] : null;
+        }
         $parsed['source'] = $news['provider'][0]['name']; 
         $parsed['link'] = $url;
         //Call to Alchemy to get the full body and the emotions
         $results = $this->getEmotion($url);
         if(!empty($results['body'])){
-            $parsed['body'] = $results['body'];
+            $parsed['body'] = $this->truncate($results['body'], 300);
         } else {
             $parsed['body'] = $news['description'];
         }
@@ -413,8 +417,8 @@ class NewsController extends Controller
         $token = json_decode($response->getBody(), true);
         $accessToken = $token['access_token'];
         //tanushechka.krasotushechka
-        $username = 'samuel.pouyt';
-        //$username = "tanushechka.krasotushechka";
+        //$username = 'samuel.pouyt';
+        $username = "tanushechka.krasotushechka";
 
         $send = [
             'headers' => 

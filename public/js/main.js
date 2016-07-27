@@ -62,7 +62,7 @@ function send(){
 
             function speakEnglishNews(){
                 if(item.news.title){
-                    responsiveVoice.speak("According to Watson the main emotion of this article is:" + item.news.emotion, 'UK English Female');
+                    responsiveVoice.speak("According to Watson the main emotion expressed in the article is:" + item.news.emotion, 'UK English Female');
                     responsiveVoice.speak(item.news.title, 'UK English Female', {onend: englishNewsBody});
                 } else {       
                         responsiveVoice.speak("Sorry, No news found");
@@ -80,7 +80,7 @@ function send(){
             }
 
             if(emotion){
-                emotion = '<h4>Watson has found that this news reflects the following emotion: <b>'+emotion+'</b></h4>'
+                emotion = '<h4>According to Watson the main emotion expressed in the article is: <b>'+emotion+'</b></h4>'
             }
 
             if(item.action == "show.news") {
