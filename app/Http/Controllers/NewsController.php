@@ -241,7 +241,7 @@ class NewsController extends Controller
         if(empty($offsetNews)){
             $offsetNews = 0;
         } 
-        if(empty($subject)){
+       if(empty($subject) && empty($adjective)){
             $subject = $query;
         }
         //Response defaults
