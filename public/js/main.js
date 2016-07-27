@@ -63,6 +63,7 @@ function send(){
             function speakEnglishNews(){
                 if(item.news.title){
                     responsiveVoice.speak("According to Watson the main emotion expressed in the article is:" + item.news.emotion, 'UK English Female');
+                    console.log("English news title >>>>>>>>> " + item.news.title)
                     responsiveVoice.speak(item.news.title, 'UK English Female', {onend: englishNewsBody});
                 } else {       
                         responsiveVoice.speak("Sorry, No news found");
