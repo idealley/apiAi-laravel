@@ -56,8 +56,8 @@ class NewsController extends Controller
                 $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
             }
         } else {
-            $response = $answer['speech'].": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
-            $displayText = $answer['speech']." Title: ".$answer['music']['title'];
+            $response = ": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
+            $displayText = " Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
                 $context = ['name' => 'next-song', 'lifespan' => 5, 'parameters' => ['offset-song' => $answer['offset-song']]];
@@ -216,8 +216,9 @@ class NewsController extends Controller
         $action = isset($results['result']['action']) ? $results['result']['action'] : false;
         $intent = isset($results['result']['metadata']['intentName']) ? $results['result']['metadata']['intentName'] : false;;
         $apiAiSource = isset($results['result']['source']) ? $results['result']['source'] : false;
-        //API.AI Result params
+        //API.AI Result par ams
         $subject = isset($results['result']['parameters']['subject']) ? $results['result']['parameters']['subject'] : false;
+        $music = isset($results['result']['parameters']['music-subject']) ? $results['result']['parameters']['music-subject'] : false;
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
         $news = isset($results['result']['parameters']['news']) ? $results['result']['parameters']['news'] : false;
         //API.AI Fulfillment data (News agent data sent back...)
