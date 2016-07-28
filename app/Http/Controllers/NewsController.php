@@ -123,7 +123,6 @@ class NewsController extends Controller
             'offset' => $offset,
             'limit' => 1
         ));
-        
         $song['url'] = $tracks->tracks->items[0]->preview_url;
         $song['title'] = $tracks->tracks->items[0]->name;
         $song['full'] =  $tracks->tracks->items[0]->external_urls->spotify;
@@ -241,9 +240,7 @@ class NewsController extends Controller
         if(empty($offsetNews)){
             $offsetNews = 0;
         } 
-       if(empty($subject) && empty($adjective)){
-            $subject = $query;
-        }
+
         //Response defaults
         $answer['adjective'] = $adjective;
         $answer['subject'] = $subject;
@@ -253,7 +250,7 @@ class NewsController extends Controller
         $answer['news'] = null;
         $answer['music'] = null;
 
-        //$answer['resolvedQuery'] = $resolvedQuery;
+         $resolvedQuery = $query;
         
         //start formating the response to the app
         $answer['speech'] = $speech;
@@ -270,6 +267,11 @@ class NewsController extends Controller
                         if(empty($subject)){
                             $query = $adjective;
                         }
+
+                        if(empty($subject) && empty($adjective)){
+                            $subject = $query;
+                        }
+
                         if($intent == "More info") {
                             ++$offsetNews;
                             $answer['offset-news'] = $offsetNews;
@@ -297,18 +299,18 @@ class NewsController extends Controller
         if($action == "news.search"){
                 //
         }
-        
+
         if($action == "play.music"){
                 if($intent == "next song") {
                         ++$offsetSong;
                         $answer['offset-song'] = $offsetSong;    
                     }
-                if(!empty($subject)){
-                    $song = $this->spotify($subject, $offsetSong);
+                if(!empty($subject) & !empty($adjective)){
+                    $song = $this->spotify($adjective . " " . $subject, $offsetSong);
                 } elseif (!empty($adjective)) {
                     $song = $this->spotify($adjective, $offsetSong);
                 } else {
-                    $song = $this->spotify($resolvedQuery, $offsetSong);
+                    $song = $this->spotify($subject, $offsetSong);
                 }                 
                 if($song != null){ 
                     $answer['music'] = $song;
@@ -416,9 +418,9 @@ class NewsController extends Controller
 
         $token = json_decode($response->getBody(), true);
         $accessToken = $token['access_token'];
-        //tanushechka.krasotushechka
-        //$username = 'samuel.pouyt';
-        $username = "tanushechka.krasotushechka";
+
+        $username = 'samuel.pouyt';
+        //$username = "tanushechka.krasotushechka";
 
         $send = [
             'headers' => 
