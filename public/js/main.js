@@ -114,11 +114,12 @@ function send(){
                 $('#news').html(content);
             }
             function playMusic(){       
-
+                    if(!item.music.image) {
                     var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
                                         item.music.image
                                         +'" style="width: 100%;"></div>';
-
+                    }
+                                       
                     var content =   '<div style="text-align:center;" class="card-inner"><audio controls autoplay>'+
                                         '<source src="'+item.music.url+'" type="audio/mpeg">'+
                                         '</audio></div>';

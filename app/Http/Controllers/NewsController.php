@@ -56,7 +56,7 @@ class NewsController extends Controller
                 $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
             }
         } else {
-            $response = ": \n\n".$answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
+            $response = $answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
             $displayText = " Title: ".$answer['music']['title'];
             $source = "Spotify";
             if($answer['intent'] == "next song") {    
@@ -305,14 +305,18 @@ class NewsController extends Controller
                 if($intent == "next song") {
                         ++$offsetSong;
                         $answer['offset-song'] = $offsetSong;    
-                    }
-                if(!empty($subject) & !empty($adjective)){
+                }
+
+                if(!empty($subject) && !empty($adjective)){
                     $song = $this->spotify($adjective . " " . $subject, $offsetSong);
-                } elseif (!empty($adjective)) {
+                } 
+
+                elseif (!empty($adjective)) {
                     $song = $this->spotify($adjective, $offsetSong);
                 } else {
                     $song = $this->spotify($subject, $offsetSong);
-                }                 
+                }
+
                 if($song != null){ 
                     $answer['music'] = $song;
                 } else {
