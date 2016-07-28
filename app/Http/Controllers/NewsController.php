@@ -278,7 +278,7 @@ class NewsController extends Controller
                         //let's consider for now that local news come from Blick.ch
                         if($adjective == 'local'){
                             $market = 'de-CH';
-                            $query = 'site:blick.ch+'.$subject;
+                            $query = 'site:blick.ch/news/schweiz/+'.$subject;
                         }
 
                         if($adjective == 'swiss' || $adjective == 'Swiss'){
