@@ -10,10 +10,12 @@ function send(){
             console.log(item);
 
             $('#spinner-wrapp').hide();
-            if(item.action != "play.music" || item.action != "show.news"){  
-                console.log('>>>>>>>>>> Default');
-                $('#toggle_play').show();
-                responsiveVoice.speak(item.speech, 'UK English Female');
+            if(item.action != "play.music") {
+                if(item.action != "show.news"){  
+                    console.log('>>>>>>>>>> Default');
+                    $('#toggle_play').show();
+                    responsiveVoice.speak(item.speech, 'UK English Female');
+                }
             }
 
             var language = '';
@@ -85,9 +87,14 @@ function send(){
             }
 
             if(item.action == "show.news") {
-                var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
+
+                if(!item.news.image) {
+                        var image = '<div class="card"></div>'
+                    } else {
+                    var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
                                         item.news.image
                                         +'" style="width: 100%;"></div>';
+                    }
 
                 var content =   '<div class="card-inner">'+ emotion +'<h3>'+
                                         item.news.title
@@ -97,11 +104,13 @@ function send(){
                                     
                 if(!item.news.link) {
                     var action = '</div></div>';
-                }
-                var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
+                } else {
+                    var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
                                         item.news.link
-                                        +'"><span class="icon">link</span>read more...</a></div></div></div> ';
-                          
+                                        +'"><span class="icon">link</span>read more...</a></div></div></div> ';     
+                }   
+
+ 
                 var news = image + content + action;
 
                 $('#news').html(news);
@@ -114,7 +123,9 @@ function send(){
                 $('#news').html(content);
             }
             function playMusic(){       
-                    if(!item.music.image) {
+                    if(!item.music) {
+                        var image = '<div class="card"></div>'
+                    } else {
                     var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
                                         item.music.image
                                         +'" style="width: 100%;"></div>';
