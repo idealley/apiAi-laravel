@@ -88,7 +88,7 @@ function send(){
 
             if(item.action == "show.news") {
 
-                if(!item.news.image) {
+                if(item.news.image === 'undefined') {
                         var image = '<div class="card"></div>'
                     } else {
                     var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
