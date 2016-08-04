@@ -15,8 +15,19 @@ use GuzzleHttp\Psr7;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
 
+use App\Extensions\Helper;
+use App\Extensions\BingHelper;
+use App\Extensions\SpotifyHelper;
+
 class NewsController extends Controller
 {
+
+    public function __construct(Helper $helper, SpotifyHelper $spotify){
+        $this->helper = $helper;
+        $this->spotify = $spotify;
+    }
+
+
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
@@ -33,7 +44,7 @@ class NewsController extends Controller
             //if necessary, we can truncate the length of the body here with the function truncate()
             //use as follow: $body = $this->truncate($answer['news']['body'], 100)
             // 100 is the length you can put what ever, it is smart so it will only cut after full words
-            $body = $this->truncate($answer['news']['body'], 200);
+            $body = $this->helper->truncate($answer['news']['body'], 200);
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
@@ -43,14 +54,14 @@ class NewsController extends Controller
 
             if($answer['news']['emotion'] !== null){
                 /**
-                | For demo purposes uncomment the bellow line to remove emoticons from the response
-                | To remove the comment remove // from the begining of the line
+                * For demo purposes uncomment the bellow line to remove emoticons from the response
+                * To remove the comment remove // from the begining of the line
                 */
                 //$response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 
                 /**
-                | For demo purposes comment the bellow line to remove emoticons from the response
-                | To comment add // at the begining of the line
+                * For demo purposes comment the bellow line to remove emoticons from the response
+                * To comment add // at the begining of the line
                 */
                 $response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
@@ -71,7 +82,6 @@ class NewsController extends Controller
                 $speech = $answer['speech'];
                 $text = $answer['speech'];
             }
-
 
        // Log::debug("to send >>>>>>>>>>>>> ".$context);
 
@@ -109,29 +119,6 @@ class NewsController extends Controller
             ], 200);
     }
 
-    public function spotify($query, $offset){
-        $session = new \SpotifyWebAPI\Session(env('SPOTIFY_CLIENT_ID'), env('SPOTIFY_CLIENT_SECRET'), url('spotify'));
-        $api = new \SpotifyWebAPI\SpotifyWebAPI();
-
-        $session->requestCredentialsToken();
-        $accessToken = $session->getAccessToken(); // We're good to go!
-
-        // Set the code on the API wrapper
-        $api->setAccessToken($accessToken);
-        //search for songs
-        $tracks = $api->search($query, 'track', array(
-            'offset' => $offset,
-            'limit' => 1
-        ));
-        $song['url'] = $tracks->tracks->items[0]->preview_url;
-        $song['title'] = $tracks->tracks->items[0]->name;
-        $song['full'] =  $tracks->tracks->items[0]->external_urls->spotify;
-        $song['image'] = $tracks->tracks->items[0]->album->images[0]->url;
-
-        return $song;
-
-    }
-
     /**
     * Send the Request to API.AI
     * @param object $request
@@ -160,45 +147,6 @@ class NewsController extends Controller
         return json_decode($response->getBody(),true);
     }
 
-    public function getEmotion($url){
-
-        $client = new Client();
-        $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned&outputMode=json');
-        
-        $item = json_decode($response->getBody(), true);
-
-        $news['language'] = $item['language'];
-        $news['body'] = $item['text'];
-        $news['emotion'] = null;
-        $news['emoticon'] = null;
-
-        if($item['status'] == 'OK'){
-            //Emoticons for sykpe
-            $anger = ":@";
-            $happy = "(happy)";
-            $sad = ";(";
-            $disgust = "(puke)";
-            $fear = ":S";
-
-            //Finding the predominant emotion
-            arsort($item['docEmotions']);
-            reset($item['docEmotions']);
-            $emotion = key($item['docEmotions']);
-
-            //Matching the emoticon with the emotion
-            if ($emotion == "anger"){$emoticon = $anger;}
-            if ($emotion == "disgust"){$emoticon = $disgust;}
-            if ($emotion == "fear"){$emoticon = $fear;}
-            if ($emotion == "joy"){$emoticon = $happy;}
-            if ($emotion == "sadness"){$emoticon = $sad;}
-
-            $news['emotion'] = $emotion;
-            $news['emoticon'] = $emoticon;
-
-        }
-        return $news; 
-        
-    }
 
     /**
     * Parse the results received from API.AI and parse it with some logic to
@@ -231,8 +179,8 @@ class NewsController extends Controller
         //$language = isset($data['languange']) ? $data['languange'] : null;
         //$emotion = isset($data['emotion']) ? $data['emotion'] : null;
         //$emoticon = isset($data['emoticon']) ? $data['emoticon'] : null;
-        $indexSong = $this->getIndex('next-song', $results['result']['contexts']);
-        $indexNews = $this->getIndex('next-news', $results['result']['contexts']);
+        $indexSong = $this->helper->getIndex('next-song', $results['result']['contexts']);
+        $indexNews = $this->helper->getIndex('next-news', $results['result']['contexts']);
         $offsetSong = isset($results['result']['contexts'][$indexSong]['parameters']['offset-song']) ? $results['result']['contexts'][$indexSong]['parameters']['offset-song'] : 0;
         if(empty($offsetSong)){
             $offsetSong = 0;
@@ -287,7 +235,8 @@ class NewsController extends Controller
                         if($adjective == 'swiss' || $adjective == 'Swiss'){
                             $market = 'de-CH';
                         }
-                        $response = $this->getNews($query, $offsetNews, $market);
+                        $bing = new BingHelper();
+                        $response = $bing->getNews($query, $offsetNews, $market);
                         $news = json_decode($response->getContent(), true);
                         $answer['news'] = $news['item'];
                         //Adding speech for the webapp. $displayText is used because $speech "enriched"
@@ -308,19 +257,19 @@ class NewsController extends Controller
                 }
 
                 if(!empty($subject) && !empty($adjective)){
-                    $song = $this->spotify($adjective . " " . $subject, $offsetSong);
+                    $song = $this->spotify->getSong($adjective . " " . $subject, $offsetSong);
                 } 
 
                 elseif (!empty($adjective)) {
-                    $song = $this->spotify($adjective, $offsetSong);
+                    $song = $this->spotify->getSong($adjective, $offsetSong);
                 } else {
-                    $song = $this->spotify($subject, $offsetSong);
+                    $song = $this->spotify->getSong($subject, $offsetSong);
                 }
 
                 if($song != null){ 
                     $answer['music'] = $song;
                 } else {
-                    $answer['music'] = $this->spotify("Opera", $offsetSong);
+                    $answer['music'] = $this->spotify->getSong("Opera", $offsetSong);
                 }   
 
         }
@@ -332,121 +281,9 @@ class NewsController extends Controller
                         $answer['offset-song'] = $offsetSong;
                     }
                     $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
-                    $song = $this->spotify('opera', $offset);
+                    $song = $this->spotify->getSong('opera', $offset);
                     $answer['music'] = $song;
             }
         return $answer;
     }
-
-    public function truncate($string, $length = 300, $append = "..."){
-        $string = trim($string);
-
-        if(strlen($string) > $length) {
-            $string = wordwrap($string, $length);
-            $string = explode("\n", $string, 2);
-            $string = $string[0]. $append;
-        }
-
-        return $string;
-
-    }
-
-    public function getIndex($name, $array){
-    foreach($array as $key => $value){
-        if(is_array($value) && $value['name'] == $name)
-              return $key;
-    }
-    return null;
-    }
-
-    public function getNews($query, $offset, $market = 'en-US'){
-        //all available markets es-AR,en-AU,de-AT,nl-BE,fr-BE,pt-BR,en-CA,fr-CA,es-CL,da-DK,fi-FI,fr-FR,de-DE,zh-HK,en-IN,en-ID,en-IE,it-IT,ja-JP,ko-KR,en-MY,es-MX,nl-NL,en-NZ,no-NO,zh-CN,pl-PL,pt-PT,en-PH,ru-RU,ar-SA,en-ZA,es-ES,sv-SE,fr-CH,de-CH,zh-TW,tr-TR,en-GB,en-US,es-US
-        $client = new Client();
-        $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=true', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
-        //$response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search?q='.$query.'&count=1&offset='.$offset.'&safeSearch=Moderate&originalImg=1', ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
-
-        $item = json_decode($response->getBody(), true);
-
-        $news = $item['value'][0];
-
-
-
-        //Getting the url without the bing redirect
-        $url = $this->urlDecode($news['url']);
-
-        $parsed['title'] = $news['name'];
-        if(isset($news['image']['contentUrl'])){
-            $parsed['image'] = $news['image']['contentUrl'];         
-        } else {
-            $parsed['image'] = isset($news['image']['thumbnail']['contentUrl']) ? $news['image']['thumbnail']['contentUrl'] : null;
-        }
-        $parsed['source'] = $news['provider'][0]['name']; 
-        $parsed['link'] = $url;
-        //Call to Alchemy to get the full body and the emotions
-        $results = $this->getEmotion($url);
-        if(!empty($results['body'])){
-            $parsed['body'] = $this->truncate($results['body'], 300);
-        } else {
-            $parsed['body'] = $news['description'];
-        }
-        $parsed['language'] = $results['language'];
-        $parsed['emotion'] = $results['emotion'];
-        $parsed['emoticon'] = $results['emoticon']; 
-
-        return Response::json([
-                'item'  => $parsed
-            ], 200);
-    }
-
-    /**
-    * Decode Bing url
-    */
-    public function urlDecode($url){
-        $url = rawurldecode($url);
-        $parts = parse_url($url);
-        parse_str($parts['query'], $query);
-        return $query['r'];
-    }
-
-    public function skypeChat(Request $request){
-
-        $redirectUrl = urlencode('https://news-agent.idealley.ch/skype');
-
-        $client = new Client();
-
-        $response = $client->request('POST','https://login.microsoftonline.com/common/oauth2/v2.0/token', ["form_params" => [
-                "client_id" => env('MICROSOFT_APP_ID'),
-                "client_secret" => env('MICROSOFT_APP_SECRET'),
-                'grant_type' => 'client_credentials',
-                'scope' => 'https://graph.microsoft.com/.default'
-            ]]);
-
-        $token = json_decode($response->getBody(), true);
-        $accessToken = $token['access_token'];
-
-        //$username = 'samuel.pouyt';
-        $username = "tanushechka.krasotushechka";
-
-        $send = [
-            'headers' => 
-                    [
-                    'Content-Type' => 'application/json;charset=utf-8', 
-                    'Authorization' => 'Bearer '.$accessToken
-                    ],
-             'json' => [                
-                    'message' => [
-                        'content' => "Hi! (wave)\nHere are the latest news that I thought could interest you: 
-                        \n (bell) First news
-                        \n (bell) Second news
-                        \n (bell) Third news"
-                        ]
-                    ]  
-                ];  
-        $response = $client->request('POST','https://apis.skype.com/v2/conversations/8:'.$username.'/activities', $send);
- 
-        return "The message has been sent"; 
-
-
-    }
-
 }
