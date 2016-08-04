@@ -237,8 +237,7 @@ class NewsController extends Controller
                         }
                         $bing = new BingHelper();
                         $response = $bing->getNews($query, $offsetNews, $market);
-                        $news = json_decode($response->getContent(), true);
-                        $answer['news'] = $news['item'];
+                        $answer['news'] = $response['item'];
                         //Adding speech for the webapp. $displayText is used because $speech "enriched"
                         //to display more info (emoticons, urls, etc) in skype and other bots as far 
                         //as API.AI uses this key to answer the user.

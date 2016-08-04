@@ -46,9 +46,7 @@ class BingHelper {
         $parsed['emotion'] = $results['emotion'];
         $parsed['emoticon'] = $results['emoticon']; 
 
-        return Response::json([
-                'item'  => $parsed
-            ], 200);
+        return [ 'item'  => $parsed ];
     }
 
     /**
