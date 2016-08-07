@@ -31,12 +31,8 @@ class NewsController extends Controller
     public function webhook(Request $request){
         //Getting the POST request from API.AI and decoding it
         $results = json_decode($request->getContent(), true);
-        //Log::debug("API call >>>>>>>>>>>>> ");
-        //Log::debug($results);
         
         $answer = $this->answer($results);
-
-        //Log::debug("Processed >>>>>>>>>>>>> ".$results);
 
         $context = '';
 
@@ -49,7 +45,13 @@ class NewsController extends Controller
             $displayText = null;
             $source = $answer['news']['source'];
             if($answer['intent'] == "More info") { 
-                $context = ['name' => 'next-news', 'lifespan' => 5, 'parameters' => ['offset-news' => $answer['offset-news']]];
+                $context = [
+                    'name' => 'next-news', 
+                    'lifespan' => 5, 
+                    'parameters' => [
+                        'offset-news' => $answer['offset-news']
+                    ]
+                ];
             }
 
             if($answer['news']['emotion'] !== null){
@@ -60,18 +62,37 @@ class NewsController extends Controller
                 //$response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
                 
                 /**
+                * This $response is displayed in the skybot ans in API.AI console, but not in the webapp
                 * For demo purposes comment the bellow line to remove emoticons from the response
                 * To comment add // at the begining of the line
                 */
-                $response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emoticon']." ( ".$answer['news']['emotion']." )\n\n  ".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
+                $response = $answer['speech']
+                    ."\n\n According to Watson the main emotion expressed in the article is: "
+                    .$answer['news']['emoticon']
+                    ." ( ".$answer['news']['emotion']." )\n\n  "
+                    .$answer['news']['title']."\n\n".$body."\n\nRead more: "
+                    .$answer['news']['link'];
+
                 $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
             }
         } else {
-            $response = $answer['music']['title']."\n\n(music)\n\n".$answer['music']['url']."\n\nlisten to the full song here: ".$answer['music']['full'];
+            $response = $answer['music']['title']
+                ."\n\n(music)\n\n"
+                .$answer['music']['url']
+                ."\n\nlisten to the full song here: "
+                .$answer['music']['full'];
+            
             $displayText = "Title: ".$answer['music']['title'];
             $source = "Spotify";
+
             if($answer['intent'] == "next song") {    
-                $context = ['name' => 'next-song', 'lifespan' => 5, 'parameters' => ['offset-song' => $answer['offset-song']]];
+                $context = [
+                    'name' => 'next-song', 
+                    'lifespan' => 5, 
+                    'parameters' => [
+                        'offset-song' => $answer['offset-song']
+                        ]
+                    ];
             }
         }
 
@@ -121,6 +142,8 @@ class NewsController extends Controller
 
     /**
     * Send the Request to API.AI
+    * This method is used by the webapp. Api.AI calls the webhook above
+    * The response is what API.AI got from the webhook.
     * @param object $request
     * @return array
     */
@@ -158,7 +181,7 @@ class NewsController extends Controller
         //API.AI Fulfillment
         $speech = isset($results['result']['fulfillment']['speech']) ? $results['result']['fulfillment']['speech'] : '';
         $newsSource = isset($results['result']['fulfillment']['source']) ? $results['result']['fulfillment']['source'] : '';
-        //$displayText = isset($results['result']['fulfillment']['displayText']) ? $results['result']['fulfillment']['displayText'] : '';;
+        //$displayText = isset($results['result']['fulfillment']['displayText']) ? $results['result']['fulfillment']['displayText'] : '';
         //API.AI Result 
         $query = isset($results['result']['resolvedQuery']) ? $results['result']['resolvedQuery'] : false;
         $action = isset($results['result']['action']) ? $results['result']['action'] : false;
@@ -197,14 +220,12 @@ class NewsController extends Controller
         $answer['action'] = $action;
         //$answer['offset.original'] = $offset;
         $answer['news'] = null;
-        $answer['music'] = null;
-
-         $resolvedQuery = $query;
-        
-        //start formating the response to the app
+        $answer['music'] = null;  
         $answer['speech'] = $speech;
-        // speech response for webhooks call
 
+        $resolvedQuery = $query;
+
+        //small check in case nothing is returned
         if(!$action && $speech == '' && !$subject){
             $answer['speech'] = "Sorry, ".$resolvedQuery." did not return any result";
             $answer['news'] = 'Nothing is happening right now. Check later!';
@@ -218,7 +239,7 @@ class NewsController extends Controller
                         }
 
                         if(empty($subject) && empty($adjective)){
-                            $subject = $query;
+                            $subject = $resolvedQuery;
                         }
 
                         if($intent == "More info") {
@@ -227,26 +248,45 @@ class NewsController extends Controller
                         }
                         $market = 'en-US';
                         //let's consider for now that local news come from Blick.ch
-                        if($adjective == 'local'){
+                        if($adjective == 'local' || $adjective == 'swiss' || $adjective == 'Swiss'){
                             $market = 'de-CH';
-                            $query = 'site:blick.ch/news/schweiz/+'.$subject;
+                            $root = 'site:blick.ch';
+                            $cat = '+';
+                            if($subject == 'news'){
+                                $cat = '/news/schweiz';  
+                            }
+
+                            if($subject == 'football' ||
+                                $subject == 'soccer' ||
+                                $subject == 'tennis' ||
+                                $subject == 'hockey'){
+                                $cat = '/sport+';
+                            }
+                            $category = false;
+                            $query = $root.$cat.$subject;
                         }
 
-                        if($adjective == 'swiss' || $adjective == 'Swiss'){
-                            $market = 'de-CH';
+                        if($adjective == 'international' && $subject == 'news'){
+                            $category = 'World';
+                            $query = '';
                         }
+
+                        if(
+                            ($adjective == 'international' && $subject == 'football') ||
+                            ($adjective == 'international' && $subject == 'soccer') ||
+                            ($adjective == 'international' && $subject == 'tennis') ||
+                            ($adjective == 'international' && $subject == 'hockey')
+                            ){
+                            $category = 'Sport';
+                        }
+
                         $bing = new BingHelper();
-                        $response = $bing->getNews($query, $offsetNews, $market);
+                        $response = $bing->getNews($query, $offsetNews, $market, $category);
                         $answer['news'] = $response['item'];
                         //Adding speech for the webapp. $displayText is used because $speech "enriched"
                         //to display more info (emoticons, urls, etc) in skype and other bots as far 
                         //as API.AI uses this key to answer the user.
                         $answer['speech'] = $speech;
-        }
-
-        //the domain using this action is not free
-        if($action == "news.search"){
-                //
         }
 
         if($action == "play.music"){
@@ -272,17 +312,7 @@ class NewsController extends Controller
                 }   
 
         }
-        
-        //the domain using this action is not free
-        if($action == "wisdom.unknown"){
-                    if($intent == "next song") {
-                        ++$offsetSong;
-                        $answer['offset-song'] = $offsetSong;
-                    }
-                    $answer['speech'] = "Sorry it took me a long time and I did not find any related music, but meanwhile I found this:";
-                    $song = $this->spotify->getSong('opera', $offset);
-                    $answer['music'] = $song;
-            }
-        return $answer;
+
+        return $answer ;
     }
 }
