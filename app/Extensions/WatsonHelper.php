@@ -14,7 +14,6 @@ class WatsonHelper {
         $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned&outputMode=json');
         
         $item = json_decode($response->getBody(), true);
-
         $news['language'] = $item['language'];
         $news['body'] = $item['text'];
         $news['emotion'] = null;

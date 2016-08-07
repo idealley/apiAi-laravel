@@ -32,26 +32,31 @@ class BingHelper {
 
         $parsed['title'] = $news['name'];
 
-        //This seems not to work well as I never get images for blick...
         if(isset($news['image']['contentUrl'])){
             $parsed['image'] = $news['image']['contentUrl'];         
         } else {
             $parsed['image'] = url('img/placeholder.png');
         }
+
         $parsed['source'] = $news['provider'][0]['name']; 
         $parsed['link'] = $url;
+        $parsed['language'] = 'german';
+        $parsed['emotion'] = null;
+        $parsed['emoticon'] = null; 
         //Call to Alchemy to get the full body and the emotions
         $watson = new WatsonHelper();
-        $results = $watson->getEmotion($url);
+        if($parsed['source'] != 'Blick'){
+            $results = $watson->getEmotion($url);
+        }
         if(!empty($results['body'])){
         	$helper = new Helper();
             $parsed['body'] = preg_replace('/[\s\t\n\r\s]+/', ' ', $helper->truncate($results['body'], 300));
+            $parsed['language'] = $results['language'];
+            $parsed['emotion'] = $results['emotion'];
+            $parsed['emoticon'] = $results['emoticon']; 
         } else {
             $parsed['body'] = $news['description'];
         }
-        $parsed['language'] = $results['language'];
-        $parsed['emotion'] = $results['emotion'];
-        $parsed['emoticon'] = $results['emoticon']; 
 
         return [ 'item'  => $parsed ];
     }
