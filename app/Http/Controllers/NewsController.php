@@ -253,7 +253,8 @@ class NewsController extends Controller
                             $root = 'site:blick.ch';
                             $cat = '+';
                             if($subject == 'news'){
-                                $cat = '/news/schweiz';  
+                                $cat = '/news/schweiz'; 
+                                $subject = ''; 
                             }
 
                             if($subject == 'football' ||
@@ -265,7 +266,6 @@ class NewsController extends Controller
                             $category = false;
                             $query = $root.$cat.$subject;
                         }
-
                         if($adjective == 'international' && $subject == 'news'){
                             $category = 'World';
                             $query = '';
