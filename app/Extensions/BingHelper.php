@@ -21,6 +21,7 @@ class BingHelper {
             $market = 'en-US';
             $params = '?q='.$query.'category='.$category.'&count=1&offset='.$offset.'&mkt='.$market.'&safeSearch=Moderate&originalImg=true';
         }
+        dd($params . "\n\n" . env('BING_SEARCH') );
         $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search'.$params, ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
 
         $item = json_decode($response->getBody(), true);
