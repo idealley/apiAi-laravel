@@ -233,6 +233,7 @@ class NewsController extends Controller
   
         if($action == "show.news"){
         //if local -> query needs to be site:blick.ch
+                        $category = '';
                         $query = $subject;
                         if(empty($subject)){
                             $query = $adjective;
@@ -265,7 +266,7 @@ class NewsController extends Controller
                             }
                             $category = false;
                             $query = $root.$cat.$subject;
-                        }
+                        } 
                         if($adjective == 'international' && $subject == 'news'){
                             $category = 'World';
                             $query = '';
