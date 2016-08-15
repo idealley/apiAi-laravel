@@ -252,43 +252,43 @@ class NewsController extends Controller
                             $answer['offset-news'] = $offsetNews;
                         }
                         $market = 'en-US';
+                        
+                        if($adjective != 'local'){
+                            $category = 'World';
+                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com OR site:washingtonpost.com';
+                            $cat = '+';
+                            $query = $root.$cat.$subject;
+                        }
+
+                        if($subject == 'football' || $subject == 'soccer' || $subject == 'tennis' || $subject == 'hockey'){
+                            $category = 'Sport';
+                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com OR site:washingtonpost.com';
+                            $cat = '+';
+                            $query = $subject;
+                        }
+
+
                         //let's consider for now that local news come from Blick.ch
+            
                         if($adjective == 'local' || $adjective == 'swiss' || $adjective == 'Swiss' || $subject == "Switzerland" || $subject == "switzerland"){
                             $market = 'de-CH';
                             $root = 'site:blick.ch';
                             $cat = '+';
                             //here we redirect all this news to the swiss cat of blick
-                            $cat = '/news/schweiz'; 
-                            $subject = ''; 
+                            $cat = '/news/schweiz';
 
                             if($subject == 'football' ||
                                 $subject == 'soccer' ||
                                 $subject == 'tennis' ||
                                 $subject == 'hockey'){
                                 $cat = '/sport+';
+                            } else {
+                                $subject = '';
                             }
                             $category = false;
                             $query = $root.$cat.$subject;
                         } 
 
-                        if($adjective == 'international'){
-                            $category = 'World';
-                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com';
-                            $cat = '+';
-                            $query = $root.$cat.$subject;
-                        }
-
-                        if(
-                            ($adjective == 'international' && $subject == 'football') ||
-                            ($adjective == 'international' && $subject == 'soccer') ||
-                            ($adjective == 'international' && $subject == 'tennis') ||
-                            ($adjective == 'international' && $subject == 'hockey')
-                            ){
-                            $category = 'Sport';
-                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com';
-                            $cat = '+';
-                            $query = $subject;
-                        }
                         $bing = new BingHelper();
                         $response = $bing->getNews($query, $offsetNews, $market, $category);
                         $answer['news'] = $response['item'];
