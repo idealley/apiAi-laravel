@@ -55,7 +55,7 @@ function send(){
             function germanNewsBody(){
                 if(item.news.body){
                     responsiveVoice.speak(item.news.body, "Deutsch Female");              
-                    responsiveVoice.speak(item.news.source, 'Deutsch Female');
+                    responsiveVoice.speak("Nachrichtenquelle: " + item.news.source, 'Deutsch Female');
                 } else {       
                         responsiveVoice.speak("Nothing else to read");
                 }
@@ -75,20 +75,22 @@ function send(){
             function englishNewsBody(){
                 if(emotion){
                     responsiveVoice.speak(item.news.body, 'UK English Female');
-                    responsiveVoice.speak(item.news.source, 'UK English Female');
+                    responsiveVoice.speak("Source: " + item.news.source, 'UK English Female');
                 } else {       
                     responsiveVoice.speak(item.news.body, 'UK English Female');             
-                    responsiveVoice.speak(item.news.source, 'UK English Female');
+                    responsiveVoice.speak("Source: " + item.news.source, 'UK English Female');
                 }
             }
 
             if(emotion){
                 emotion = '<h4>According to Watson the main emotion expressed in the article is: <b>'+emotion+'</b></h4>'
+            } else {
+                emotion = '';
             }
 
             if(item.action == "show.news") {
 
-                if(!item.news.image) {
+                if(item.news.image == null) {
                         var image = '<div class="card"></div>'
                     } else {
                     var image =     '<div class="card"><div class="card-main"><div class="card-img"><img alt="alt text" src="' +
@@ -107,7 +109,7 @@ function send(){
                 } else {
                     var action =    '<div class="card-action"><a class="btn btn-flat waves-attach waves-effect" href="'+
                                         item.news.link
-                                        +'"><span class="icon">link</span>read more...</a></div></div></div> ';     
+                                        +'"><span class="icon">link </span> read more...</a></div></div></div> ';     
                 }   
 
  

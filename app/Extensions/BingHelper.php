@@ -35,7 +35,8 @@ class BingHelper {
         if(isset($news['image']['contentUrl'])){
             $parsed['image'] = $news['image']['contentUrl'];         
         } else {
-            $parsed['image'] = url('img/placeholder.png');
+            //$parsed['image'] = url('img/placeholder.png');
+            $parsed['image'] = null;
         }
 
         $parsed['source'] = $news['provider'][0]['name']; 

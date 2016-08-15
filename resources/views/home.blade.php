@@ -98,11 +98,7 @@
 		</div>
 	</main>					
 
-	<footer class="ui-footer">
-		<div class="container">
-			<p></p>
-		</div>
-	</footer>
+
 	<div class="fbtn-container">
 		<div class="fbtn-inner">
 			<a id="toggle_play" style="display:none;" class="fbtn fbtn-lg fbtn-brand-accent waves-attach waves-circle waves-light" data-toggle="dropdown">

@@ -249,14 +249,13 @@ class NewsController extends Controller
                         }
                         $market = 'en-US';
                         //let's consider for now that local news come from Blick.ch
-                        if($adjective == 'local' || $adjective == 'swiss' || $adjective == 'Swiss'){
+                        if($adjective == 'local' || $adjective == 'swiss' || $adjective == 'Swiss' || $subject == "Switzerland" || $subject == "switzerland"){
                             $market = 'de-CH';
                             $root = 'site:blick.ch';
                             $cat = '+';
-                            if($subject == 'news'){
-                                $cat = '/news/schweiz'; 
-                                $subject = ''; 
-                            }
+                            //here we redirect all this news to the swiss cat of blick
+                            $cat = '/news/schweiz'; 
+                            $subject = ''; 
 
                             if($subject == 'football' ||
                                 $subject == 'soccer' ||
@@ -267,9 +266,10 @@ class NewsController extends Controller
                             $category = false;
                             $query = $root.$cat.$subject;
                         } 
-                        if($adjective == 'international' && $subject == 'news'){
+
+                        if($adjective == 'international'){
                             $category = 'World';
-                            $query = '';
+                            $query = $subject;
                         }
 
                         if(
@@ -279,6 +279,7 @@ class NewsController extends Controller
                             ($adjective == 'international' && $subject == 'hockey')
                             ){
                             $category = 'Sport';
+                            $query = $subject;
                         }
 
                         $bing = new BingHelper();
