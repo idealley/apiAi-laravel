@@ -254,15 +254,13 @@ class NewsController extends Controller
                         $market = 'en-US';
                         
                         if($adjective != 'local'){
-                            $category = 'World';
-                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com OR site:washingtonpost.com';
+                            $root = '(site:cnn.com/world OR site:usatoday.com/news/world OR site:washingtonpost.com/world)';
                             $cat = '+';
                             $query = $root.$cat.$subject;
                         }
 
                         if($subject == 'football' || $subject == 'soccer' || $subject == 'tennis' || $subject == 'hockey'){
-                            $category = 'Sport';
-                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com OR site:washingtonpost.com';
+                            $root = '(site:cnn.com/sport OR site:usatoday.com/sports OR site:washingtonpost.com/sports)';
                             $cat = '+';
                             $query = $subject;
                         }
@@ -289,6 +287,8 @@ class NewsController extends Controller
                             $query = $root.$cat.$subject;
                         } 
 
+
+                        //dd("Cat:" .$category . " Query: " . $query);
                         $bing = new BingHelper();
                         $response = $bing->getNews($query, $offsetNews, $market, $category);
                         $answer['news'] = $response['item'];
