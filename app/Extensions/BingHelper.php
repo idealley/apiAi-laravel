@@ -24,7 +24,7 @@ class BingHelper {
         $response = $client->request('GET','https://api.cognitive.microsoft.com/bing/v5.0/news/search'.$params, ['headers' => ['Ocp-Apim-Subscription-Key' => env('BING_SEARCH')]]);
 
         $item = json_decode($response->getBody(), true);
-
+dd($item);
         $news = $item['value'][0];
 
         //Getting the url without the bing redirect

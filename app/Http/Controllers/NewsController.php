@@ -273,7 +273,9 @@ class NewsController extends Controller
 
                         if($adjective == 'international'){
                             $category = 'World';
-                            $query = $subject;
+                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com';
+                            $cat = '+';
+                            $query = $root.$cat.$subject;
                         }
 
                         if(
@@ -283,9 +285,10 @@ class NewsController extends Controller
                             ($adjective == 'international' && $subject == 'hockey')
                             ){
                             $category = 'Sport';
+                            $root = 'site:bbc.com OR site:cnn.com OR site:usatoday.com OR site:nytimes.com';
+                            $cat = '+';
                             $query = $subject;
                         }
-
                         $bing = new BingHelper();
                         $response = $bing->getNews($query, $offsetNews, $market, $category);
                         $answer['news'] = $response['item'];
