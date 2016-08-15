@@ -44,12 +44,14 @@ class NewsController extends Controller
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
-            if($answer['intent'] == "More info") { 
+            if($answer['intent'] == "more-info") { 
                 $context = [
                     'name' => 'next-news', 
                     'lifespan' => 5, 
                     'parameters' => [
-                        'offset-news' => $answer['offset-news']
+                        'offset-news' => $answer['offset-news'],
+                        'adjective' => $answer['adjective'],
+                        'subject' => $answer['subject']
                     ]
                 ];
             }
@@ -161,7 +163,7 @@ class NewsController extends Controller
                     ],
                 'body' => json_encode([                
                     'query' => $query, 
-                    'lang' => 'en'
+                    'lang' => 'en',
                     ])
                 ];  
 
@@ -192,6 +194,7 @@ class NewsController extends Controller
         $music = isset($results['result']['parameters']['music-subject']) ? $results['result']['parameters']['music-subject'] : false;
         $adjective = isset($results['result']['parameters']['adjective']) ? $results['result']['parameters']['adjective'] : false;
         $news = isset($results['result']['parameters']['news']) ? $results['result']['parameters']['news'] : false;
+        $sessionId = isset($results['sessionId']) ? $results['sessionId'] : "agent-" . base64_encode(random_bytes(10));
         //API.AI Fulfillment data (News agent data sent back...)
         //$data = isset($results['result']['fulfillment']['data']['newsAgent']) ? $results['result']['fulfillment']['data']['newsAgent'] : null;
         //$title = isset($data['title']) ? $data['title'] : null;
@@ -222,6 +225,7 @@ class NewsController extends Controller
         $answer['news'] = null;
         $answer['music'] = null;  
         $answer['speech'] = $speech;
+        $answer['sessionId'] = $sessionId;
 
         $resolvedQuery = $query;
 
@@ -243,7 +247,7 @@ class NewsController extends Controller
                             $subject = $resolvedQuery;
                         }
 
-                        if($intent == "More info") {
+                        if($intent == "more-info") {
                             ++$offsetNews;
                             $answer['offset-news'] = $offsetNews;
                         }
