@@ -8,14 +8,26 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Exception\ConnectException;
 
 class WatsonHelper {
-    public function getEmotion($url){
+    public function getEmotionByUrl($url){
 
         $client = new Client();
         $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/url/URLGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&url='.$url.'&showSourceText=1&sourceText=cleaned&outputMode=json');
+        return $this->parseResponse($response);
+    }
+
+    public function getEmotionByText($text){
+
+        $client = new Client();
+        $response = $client->request('GET','https://gateway-a.watsonplatform.net/calls/text/TextGetEmotion?apikey='.env('WATSON_ALCHEMY_API_KEY').'&text='.$text.'&outputMode=json');
+        return $this->parseResponse($response);
+    }
         
+    public function parseResponse($response){   
         $item = json_decode($response->getBody(), true);
         $news['language'] = $item['language'];
-        $news['body'] = $item['text'];
+        if(isset($item['text'])){
+            $news['body'] = $item['text'];
+        }
         $news['emotion'] = null;
         $news['emoticon'] = null;
 

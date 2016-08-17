@@ -40,7 +40,8 @@ class NewsController extends Controller
             //if necessary, we can truncate the length of the body here with the function truncate()
             //use as follow: $body = $this->truncate($answer['news']['body'], 100)
             // 100 is the length you can put what ever, it is smart so it will only cut after full words
-            $body = $this->helper->truncate($answer['news']['body'], 200);
+            $body = $this->helper->truncate($answer['news']['body'], 300);
+            //$response = $answer['speech']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $response = $answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
             $displayText = null;
             $source = $answer['news']['source'];
@@ -57,25 +58,21 @@ class NewsController extends Controller
             }
 
             if($answer['news']['emotion'] !== null){
-                /**
-                * For demo purposes uncomment the bellow line to remove emoticons from the response
-                * To remove the comment remove // from the begining of the line
-                */
-                //$response = $answer['speech']."\n\n According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion']."\n\n".$answer['news']['title']."\n\n".$body."\n\nRead more: ".$answer['news']['link'];
-                
-                /**
-                * This $response is displayed in the skybot ans in API.AI console, but not in the webapp
-                * For demo purposes comment the bellow line to remove emoticons from the response
-                * To comment add // at the begining of the line
-                */
+
+                if($answer['news']['language'] == 'english'){
+                    $watsonSpeech = "According to Watson the main emotion expressed in the article is: ";
+                } elseif($answer['news']['language'] == 'german'){
+                    $watsonSpeech = "Laut Watson äußerte der Haupt Emotion in der Artikel: ";
+                }
+
                 $response = $answer['speech']
-                    ."\n\n According to Watson the main emotion expressed in the article is: "
+                    ."\n\n ".$watsonSpeech
                     .$answer['news']['emoticon']
                     ." ( ".$answer['news']['emotion']." )\n\n  "
                     .$answer['news']['title']."\n\n".$body."\n\nRead more: "
                     .$answer['news']['link'];
 
-                $displayText = $answer['speech'].". According to Watson the main emotion expressed in the article is: ".$answer['news']['emotion'];
+                $displayText = $answer['speech'].". ".$watsonSpeech.$answer['news']['emotion'];
             }
         } else {
             $response = $answer['music']['title']

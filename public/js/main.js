@@ -46,6 +46,7 @@ function send(){
             
             function speakGermanNews(){ //no need to pass the object...
                 if(item.news.title){
+                    responsiveVoice.speak("Laut Watson äußerte der Haupt Emotion in der Artikel: " + item.news.emotion + ". ", 'Deutsch Female');
                     responsiveVoice.speak(item.news.title, "Deutsch Female", {onend: germanNewsBody});
                 } else {       
                         responsiveVoice.speak("Sorry, No news found");
@@ -64,7 +65,7 @@ function send(){
 
             function speakEnglishNews(){
                 if(item.news.title){
-                    responsiveVoice.speak("According to Watson the main emotion expressed in the article is:" + item.news.emotion + " : :" + item.news.title, 'UK English Female', {onend: englishNewsBody});
+                    responsiveVoice.speak("According to Watson the main emotion expressed in the article is: " + item.news.emotion + ". " + item.news.title, 'UK English Female', {onend: englishNewsBody});
                     //console.log("English news title >>>>>>>>> " + item.news.title)
                     //responsiveVoice.speak(item.news.title, 'UK English Female', {onend: englishNewsBody});
                 } else {       
@@ -82,8 +83,10 @@ function send(){
                 }
             }
 
-            if(emotion){
-                emotion = '<h4>According to Watson the main emotion expressed in the article is: <b>'+emotion+'</b></h4>'
+            if(emotion && language == "english"){
+                emotion = '<h4>According to Watson the main emotion expressed in the article is: <b>'+emotion+'</b></h4>';
+            } else if(emotion && language == "german"){
+                emotion = '<h4>Laut Watson äußerte der Haupt Emotion in der Artikel:  <b>'+emotion+'</b></h4>';
             } else {
                 emotion = '';
             }

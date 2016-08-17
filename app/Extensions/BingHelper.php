@@ -9,6 +9,7 @@ use GuzzleHttp\Exception\ConnectException;
 
 use App\Extensions\Helper;
 use App\Extensions\WatsonHelper;
+use App\Extensions\GoogleTranslate;
 
 class BingHelper {
 
@@ -42,22 +43,39 @@ class BingHelper {
         $parsed['source'] = $news['provider'][0]['name']; 
         $parsed['link'] = $url;
         $parsed['language'] = 'german';
+        $parsed['body'] = $news['description'];
         $parsed['emotion'] = null;
         $parsed['emoticon'] = null; 
         //Call to Alchemy to get the full body and the emotions
         $watson = new WatsonHelper();
         if($parsed['source'] != 'Blick'){
-            $results = $watson->getEmotion($url);
-        }
-        if(!empty($results['body'])){
-        	$helper = new Helper();
-            $parsed['body'] = preg_replace('/[\s\t\n\r\s]+/', ' ', $helper->truncate($results['body'], 300));
+            $results = $watson->getEmotionByUrl($url);
             $parsed['language'] = $results['language'];
+            $helper = new Helper();
+            $parsed['body'] = preg_replace('/[\s\t\n\r\s]+/', ' ', $helper->truncate($results['body'], 300));
             $parsed['emotion'] = $results['emotion'];
             $parsed['emoticon'] = $results['emoticon']; 
-        } else {
-            $parsed['body'] = $news['description'];
         }
+
+        if($parsed['source'] == 'Blick'){
+            //Getting the translation
+            $t = new GoogleTranslate();
+            $response = $t->getTranslation($news['description']);
+            $results = $watson->getEmotionByText($response);
+
+            if(!empty($results['emotion'])){
+                //let translate the emotion
+                    if ($results['emotion'] == "anger"){$emotion = "Zorn";}
+                    if ($results['emotion'] == "disgust"){$emotion = "Ekel";}
+                    if ($results['emotion'] == "fear"){$emotion = "Angst";}
+                    if ($results['emotion'] == "joy"){$emotion = "Freude";}
+                    if ($results['emotion'] == "sadness"){$emotion = "Traurigkeit";}
+                $parsed['emotion'] = $emotion;
+                $parsed['emoticon'] = $results['emoticon']; 
+            }
+        }
+
+
 
         return [ 'item'  => $parsed ];
     }
