@@ -48,8 +48,7 @@ function send(){
             
             function speakGermanNews(){ //no need to pass the object...
                 if(item.news.title){
-                    responsiveVoice.speak(watsonDE + item.news.emotion + ". ", 'Deutsch Female');
-                    responsiveVoice.speak(item.news.title, "Deutsch Female", {onend: germanNewsBody});
+                    responsiveVoice.speak(watsonDE + item.news.emotion + ". " + item.news.title, 'Deutsch Female', {onend: germanNewsBody});
                 } else {       
                         responsiveVoice.speak("Sorry, No news found");
                     }
