@@ -65,7 +65,7 @@ class BingHelper {
 
             if(!empty($results['emotion'])){
                 //let translate the emotion
-                    if ($results['emotion'] == "anger"){$emotion = "Zorn";}
+                    if ($results['emotion'] == "anger"){$emotion = "Ärger";}
                     if ($results['emotion'] == "disgust"){$emotion = "Ekel";}
                     if ($results['emotion'] == "fear"){$emotion = "Angst";}
                     if ($results['emotion'] == "joy"){$emotion = "Freude";}
