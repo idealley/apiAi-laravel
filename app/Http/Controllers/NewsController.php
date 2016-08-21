@@ -62,7 +62,7 @@ class NewsController extends Controller
                 if($answer['news']['language'] == 'english'){
                     $watsonSpeech = "According to Watson the main emotion expressed in the article is: ";
                 } elseif($answer['news']['language'] == 'german'){
-                    $watsonSpeech = "Laut Watson äußerte der Haupt Emotion in der Artikel: ";
+                    $watsonSpeech = "Laut Watson Hauptemotion im diesem Artikel ist: ";
                 }
 
                 $response = $answer['speech']
@@ -275,9 +275,10 @@ class NewsController extends Controller
                             if($subject == 'football' ||
                                 $subject == 'soccer' ||
                                 $subject == 'tennis' ||
-                                $subject == 'hockey'){
+                                $subject == 'hockey' ||
+                                $subject == 'sport'){
                                 $cat = '/sport+';
-                            } else {
+                            }  else {
                                 $subject = '';
                             }
                             $category = false;
@@ -303,9 +304,7 @@ class NewsController extends Controller
 
                 if(!empty($subject) && !empty($adjective)){
                     $song = $this->spotify->getSong($adjective . " " . $subject, $offsetSong);
-                } 
-
-                elseif (!empty($adjective)) {
+                } elseif (!empty($adjective && empty($subject))) {
                     $song = $this->spotify->getSong($adjective, $offsetSong);
                 } else {
                     $song = $this->spotify->getSong($subject, $offsetSong);
