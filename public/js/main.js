@@ -86,9 +86,9 @@ function send(){
             }
 
             if(emotion && language == "english"){
-                emotion = '<h4>According to Watson the main emotion expressed in the article is: <b>'+emotion+'</b></h4>';
+                emotion = '<h4>' + watsonEN + '<b>'+ emotion + '</b></h4>';
             } else if(emotion && language == "german"){
-                emotion = '<h4>Laut Watson äußerte der Haupt Emotion in der Artikel:  <b>'+emotion+'</b></h4>';
+                emotion = '<h4>' + watsonDE + '<b>' + emotion + '</b></h4>';
             } else {
                 emotion = '';
             }
