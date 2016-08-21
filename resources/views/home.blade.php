@@ -8,13 +8,12 @@
 		<title>News Agent</title>
 		<meta name="description" content="Animated icons powered by the motion graphics library mo.js by Oleg Solomka" />
 		<meta name="keywords" content="animated icons, svg, webfont, mo.js, facebook, thumbs up, animation, web design" />
-		<meta name="author" content="Codrops" />
+		<meta name="author" content="Samuel" />
 		<link rel="shortcut icon" href="favicon.ico">
 		<link href='https://fonts.googleapis.com/css?family=Patrick+Hand+SC' rel='stylesheet' type='text/css'>
 		<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.5.0/css/font-awesome.min.css" />
 		<link rel="stylesheet" type="text/css" href="css/normalize.css" />
 		<link rel="stylesheet" type="text/css" href="css/demo.css" />
-		<link rel="stylesheet" type="text/css" href="css/icons.css" />
 		<link href="../css/base.min.css" rel="stylesheet">
 		<link href="../css/project.min.css" rel="stylesheet">
 		<!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
@@ -117,7 +116,6 @@
 	</div>
 
 		<script src="/js/jquery.js"></script>
-		<script src="/js/project.min.js"></script>
 		<script src="/js/base.min.js"></script>
 		<script src="/js/speech-recognition.js"></script>
 		<script src="/js/main.js"></script>
