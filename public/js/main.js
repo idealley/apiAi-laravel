@@ -21,7 +21,7 @@ function send(){
             var language = '';
             var emotion = '';
             var watsonEN = 'According to Watson the main emotion expressed in the article is: ';
-            var watsonDE = 'Laut Watson Hauptemotion im diesem Artikel ist: ';
+            var watsonDE = 'Laut Watson Hauptemotion in diesem Artikel ist: ';
 
             if(item.news != null){
                 language = item.news.language;
