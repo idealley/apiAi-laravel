@@ -62,7 +62,7 @@ class NewsController extends Controller
                 if($answer['news']['language'] == 'english'){
                     $watsonSpeech = "According to Watson the main emotion expressed in the article is: ";
                 } elseif($answer['news']['language'] == 'german'){
-                    $watsonSpeech = "Laut Watson Hauptemotion im diesem Artikel ist: ";
+                    $watsonSpeech = "Laut Watson Hauptemotion in diesem Artikel ist: ";
                 }
 
                 $response = $answer['speech']
