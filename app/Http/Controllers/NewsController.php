@@ -159,8 +159,9 @@ class NewsController extends Controller
                     'Authorization' => 'Bearer '.$apiai_key
                     ],
                 'body' => json_encode([                
-                    'query' => $query, 
+                    'query' => array($query), 
                     'lang' => 'en',
+                    'sessionId' => '1234567890'
                     ])
                 ];  
 
