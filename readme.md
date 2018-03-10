@@ -1,5 +1,7 @@
 # api.ai and laravel
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/idealley/apiAi-laravel.svg)](https://greenkeeper.io/)
+
 This is a little experiment with api.ai and laravel. The assistant respond with a parameter that is used to fetch some news accordingly (rss). The latest news in the rss is being read aloud by the assistant.
 
 It is not production ready, again it is just a quick test.
